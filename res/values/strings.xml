@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Photo Detector</string>
+    <string name="action_settings">Settings</string>
+    <string name="menu_take_photo">Take photo</string>
+    <string name="photo_error_message">Failed to save photo</string>
+    <string name="menu_detect_object">Detect object</string>
+    <string name="menu_add_to_lib">Add to lib</string>
+    <string name="menu_load_library">Load library</string>
+    <string name="title_activity_display_result">DisplayResultActivity</string>
+    <string name="hello_world">Hello world!</string>
+
+</resources>
