@@ -520,16 +520,19 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		MatOfKeyPoint imgKeyPoints = new MatOfKeyPoint();
 		fDetector.detect(img, imgKeyPoints);
 		
-		// set threshold to 100 (instead of 1) to reduce the number of key points
-		try {
-			File outputDir = getCacheDir(); // If in an Activity (otherwise getActivity.getCacheDir();
-			File outputFile = File.createTempFile("orbDetectorParams", ".YAML", outputDir);
-			writeToFile(outputFile, "%YAML:1.0\nthreshold: 100 \nnonmaxSupression: true\n");
-			fDetector.read(outputFile.getPath());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		// set threshold to 100 (instead of 1) to reduce the number of key points
+//		// not work for new opencv
+//		try {
+//			File outputDir = getCacheDir(); // If in an Activity (otherwise getActivity.getCacheDir();
+//			File outputFile = File.createTempFile("orbDetectorParams", ".YAML", outputDir);
+//			writeToFile(outputFile, "%YAML:1.0\nthreshold: 100 \nnonmaxSupression: true\n");
+//			fDetector.read(outputFile.getPath());
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+		imgKeyPoints= topKeypoints(imgKeyPoints, 500);
 		
 		// compute the descriptor from those key points
 		dExtractor.compute(img,imgKeyPoints, imgDescriptor);
