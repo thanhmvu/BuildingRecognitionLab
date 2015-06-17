@@ -532,7 +532,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 //			e.printStackTrace();
 //		}
 		
-		imgKeyPoints= topKeypoints(imgKeyPoints, 500);
+		// filter the best key points
+		imgKeyPoints= topKeyPoints(imgKeyPoints, 500);
 		
 		// compute the descriptor from those key points
 		dExtractor.compute(img,imgKeyPoints, imgDescriptor);
@@ -540,7 +541,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
     
     // Method that returns the top 'n' best key points from 
-    public MatOfKeyPoint topKeypoints(MatOfKeyPoint imgKeyPoints, int n)
+    public MatOfKeyPoint topKeyPoints(MatOfKeyPoint imgKeyPoints, int n)
     {
 		Log.i(TAG, "imgKeyPoints size:  "+ imgKeyPoints.size());
 		// Sort and select 500 best key points
@@ -559,7 +560,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		Log.i(TAG, "listOfKeypoints size:  "+ listOfKeypoints.size());
 		List<KeyPoint> bestImgKeyPoints = listOfKeypoints.subList(0,n);
 		Log.i(TAG, "bestImgKeyPoints size:  "+ bestImgKeyPoints.size());
-		// The number of key points may be reduced (unknown reason)
+		
 		MatOfKeyPoint result = new MatOfKeyPoint();
 		result.fromList(bestImgKeyPoints); 
 		return result;
