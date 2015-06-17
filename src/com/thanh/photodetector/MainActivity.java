@@ -186,8 +186,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	if(mIsTakingPhoto){
     		mIsTakingPhoto= false;
     		// Save the image and retrieve its URI
-    		Uri uri = savePhoto(rgba);
-    		displayPhoto(uri); 
+    		savePhoto(rgba);
     	}    	
     	if(mIsObjectDetecting){
     		// Detecting the query image
@@ -208,7 +207,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
     
     // Method that save the give image to open storage in the device
-    private Uri savePhoto(final Mat rgba) { 
+    private void savePhoto(final Mat rgba) { 
 		// Determine the path and metadata for the photo. 
 		final long currentTimeMillis = System.currentTimeMillis(); 
 		final String appName = getString(R.string.app_name); 
@@ -230,7 +229,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			Log.e(TAG, "Failed to create album directory at"+ 
 					albumPath); 
 			onSavePhotoFailed(); 
-			return null; 
+			return; 
 		}  
 		
 		// Try to create the photo. 
@@ -256,10 +255,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 				Log.e(TAG, "Failed to delete non-inserted photo"); 
 			}			
 			onSavePhotoFailed(); 
-			return null;
+			return;
 		}
-		// return the URI of the image
-		return uri;		
+		
+		// Open the photo in DisplayResultActivity.
+        final Intent intent = new Intent(this, DisplayResultActivity.class);
+        intent.putExtra(DisplayResultActivity.EXTRA_PHOTO_URI,uri);
+        intent.putExtra(DisplayResultActivity.EXTRA_PHOTO_PATH,photoPath);
+        startActivity(intent);
 	}
 	
 	private void onSavePhotoFailed() { 
