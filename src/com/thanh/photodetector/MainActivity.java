@@ -383,24 +383,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			pathLib.put(img,photoPath);
 		}
     }
-    
-    // Method that saves a given image(Mat) 
-    // and adds its Mat object to photoLib, its URI to uriLib.
-    public void addToLib(Mat rgba)
-    {
-    	Mat trainRgba= new Mat();
-		rgba.copyTo(trainRgba);
-		
-		// save photo and update uri library
-		Uri uri = savePhoto(trainRgba);
-		uriLib.put(trainRgba,uri);
 
-		// update photo library
-		photoLib.add(trainRgba); 
-		
-		Log.i(TAG, "onCameraFrame: train img:  "+ rgba);
-    }
-        
     // Method that returns the path from an URI
     // (URL Source) http://stackoverflow.com/questions/20067508/get-real-path-from-uri-android-kitkat-new-storage-access-framework    
     public String getPath(Uri uri) 
