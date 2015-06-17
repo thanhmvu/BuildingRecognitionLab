@@ -18,16 +18,16 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.DMatch;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
-import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
-import org.opencv.features2d.KeyPoint;
-import org.opencv.highgui.Highgui;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import com.example.photodetector.R;
@@ -235,7 +235,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		
 		// Try to create the photo. 
 		Imgproc.cvtColor(rgba, mBgr, Imgproc.COLOR_RGBA2BGR, 3); 
-		if (!Highgui.imwrite(photoPath, mBgr)) {
+		if (!Imgcodecs.imwrite(photoPath, mBgr)) {
 			Log.e(TAG, "Failed to save photo to " + photoPath);
 			onSavePhotoFailed(); 
 		} 
@@ -290,7 +290,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     {
         super.onResume();
         Log.i(TAG, "called onResume");
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_6, 
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, 
         		this, mLoaderCallback);
         // reopen menu in case it was locked
 		mIsMenuLocked = false; 
@@ -377,7 +377,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	for (int j = 0; j < lib_size; j++) {
 			String photoPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+
 					"/research/test_photo_" +j+".jpg";
-			Mat img= Highgui.imread(photoPath);
+			Mat img= Imgcodecs.imread(photoPath);
 			Log.i(TAG, "img size" + img.size());
 			photoLib.add(img);
 			pathLib.put(img,photoPath);
@@ -420,7 +420,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public Mat detectPhoto(Mat rgbaQuery){
     	Log.i(TAG, "called detectFeatures");
     	MatOfDMatch matches= new MatOfDMatch();
-    	List<MatOfDMatch> match_list = new ArrayList<MatOfDMatch>();
+//    	List<MatOfDMatch> match_list = new ArrayList<MatOfDMatch>();
     	
     	long start= System.currentTimeMillis();    
     	// get the list of descriptors for the list of images
