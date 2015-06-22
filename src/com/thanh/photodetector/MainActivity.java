@@ -3,6 +3,7 @@ package com.thanh.photodetector;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
@@ -189,19 +191,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     		savePhoto(rgba);
     	}    	
     	if(mIsObjectDetecting){
-    		// Detecting the query image
     		mIsObjectDetecting=false;
-    		// The query image is initialized at BaseLoaderCallback 
-    		Mat result = detectPhoto(photoLib.get(query_index)); 
-    		displayPhoto(pathLib.get(result));
+//    		// Detecting the query image
+//    		// The query image is initialized at BaseLoaderCallback 
+//    		Mat result = detectPhoto(photoLib.get(query_index)); 
+//    		displayPhoto(pathLib.get(result));
+    		runExperiment();
     	}
     	if(mIsLoadingLib){
-    		// Load training images from some sources
     		mIsLoadingLib=false;        
-        	long start= System.currentTimeMillis();    		
-    		loadLibFromDevice();        
-        	long end= System.currentTimeMillis();
-        	Log.i(TAG, "Runtime to load photoLib: "+ (end-start));
+//    		// Load training images from some sources
+//        	long start= System.currentTimeMillis();    		
+//    		loadLibFromDevice();        
+//        	long end= System.currentTimeMillis();
+//        	Log.i(TAG, "Runtime to load photoLib: "+ (end-start));    		
     	}
     	return rgba;
     }
@@ -312,6 +315,103 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public void onCameraViewStopped() {
     }
 
+    public void runExperiment()
+    {
+
+		try
+        {
+            File root = new File(Environment.getExternalStorageDirectory(), "Research");
+            if (!root.exists()) {
+                root.mkdirs();
+            }
+            File gpxfile = new File(root, "data_scale.txt");
+            FileWriter writer = new FileWriter(gpxfile);
+            
+	    	HashMap<Mat, String> nameLib = new HashMap<Mat,String>();
+	    	int number_of_buildings =10;
+	    	int number_of_angles =5;
+	    	int variation_of_distance=4;
+	    	MatOfDMatch matches= new MatOfDMatch();
+	    	
+	    	//// Build the library    	
+	    	long start= System.currentTimeMillis();
+	    	// load using image paths from device
+	    	for (int a = 0; a < 1 ; a++) {
+		    	for (int b = 0; b < number_of_buildings ; b++) {
+		    		int d=1;
+					String fileName= b+"_"+a+"_"+d+".jpg";
+					String photoPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+
+							"/Research/database/" + fileName;
+					Mat img= Imgcodecs.imread(photoPath);
+
+			    	// scale down images
+			    	Mat resized_img= new Mat();
+			    	Size size= new Size(img.size().width/2, img.size().height/2);
+			    	Imgproc.resize(img, resized_img, size);
+			    	
+					photoLib.add(resized_img);
+					nameLib.put(resized_img, fileName);
+				}    	
+	    	}
+	    	// get the list of descriptors for the list of images
+	    	List<Mat> descriptor_list= descriptorList(photoLib);    	
+	    	// add descriptors to train a descriptor collection
+	    	dMatcher.add(descriptor_list);      
+	    	long done_building_lib= System.currentTimeMillis();
+	    	
+	    	Log.i(TAG, "Runtime to build library: "+ (done_building_lib - start)); 
+	    	writer.append("Runtime to build library: "+ (done_building_lib - start)+ "\n");
+	    	
+	    	//// Detect photos 
+			for (int a = 0; a < number_of_angles ; a++) {
+				for (int d = 0; d < variation_of_distance ; d++) {
+			    	int countCorrectMatch =0;
+			    	for (int b = 0; b < number_of_buildings ; b++) {
+			    		// load the query image
+				    	String fileName= b+"_"+a+"_"+d+".jpg";
+						String photoPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+
+								"/Research/database/" + fileName;
+						Mat img= Imgcodecs.imread(photoPath);
+						
+						Mat queryImg= new Mat();
+				    	Size size= new Size(img.size().width/2, img.size().height/2);
+				    	Imgproc.resize(img, queryImg, size);
+						
+				    	// get descriptors of the query image    	
+				    	Mat query_descriptors = imgDescriptor(queryImg);		
+				    	// Match the descriptors of a query image
+				    	dMatcher.match(query_descriptors, matches);    	
+				    	// filter good matches
+				    	List<DMatch> good_matches = filterGoodMatches(matches.toList());    	
+				    	// find the image that matches the most
+				    	Mat bestMatch = findBestMatch(good_matches);  
+				    	
+				    	String matchName = nameLib.get(bestMatch);
+				    	String[] buildingNo= matchName.split("_");
+				    	int bNo = Integer.parseInt(buildingNo[0]);
+				    	
+				    	if(bNo == b){
+				    		countCorrectMatch++;
+				    	}else{
+				    		Log.i(TAG, "Mismatched: "+fileName+" with "+matchName);
+				    		writer.append( fileName+"|"+matchName +"; ");
+				    	}
+			    	}
+			    	double accuracy = (double)countCorrectMatch*100/number_of_buildings ;
+			    	Log.i(TAG, "a"+a+"_d"+d+", accuracy: "+accuracy+"%");    
+			    	writer.append("\n"+"a"+a+"_d"+d+" "+accuracy+"%"+"\n");
+			    	writer.flush();
+				}
+			}
+			writer.close();
+//          Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();	        
+        }
+        catch(IOException e)
+        {
+             e.printStackTrace();
+        }
+    }
+    
     // Method that displays the image and its features 
     // on the device's screen
     public void drawFeatures(Mat rgba){
