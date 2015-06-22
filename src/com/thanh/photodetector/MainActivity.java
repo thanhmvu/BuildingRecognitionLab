@@ -368,6 +368,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			    	int countCorrectMatch =0;
 			    	for (int b = 0; b < number_of_buildings ; b++) {
 			    		// load the query image
+			    		long startD = System.currentTimeMillis();
+			    		
 				    	String fileName= b+"_"+a+"_"+d+".jpg";
 						String photoPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+
 								"/Research/database/" + fileName;
@@ -396,6 +398,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 				    		Log.i(TAG, "Mismatched: "+fileName+" with "+matchName);
 				    		writer.append( fileName+"|"+matchName +"; ");
 				    	}
+				    	
+				    	long endD =System.currentTimeMillis();
+				    	Log.i(TAG, "Runtime to detect 1 image: "+(endD-startD));    
 			    	}
 			    	double accuracy = (double)countCorrectMatch*100/number_of_buildings ;
 			    	Log.i(TAG, "a"+a+"_d"+d+", accuracy: "+accuracy+"%");    
@@ -514,22 +519,22 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	
     	// add descriptors to train a descriptor collection
     	dMatcher.add(descriptor_list);      	
-    	Log.i(TAG, "DescriptorMatcher train collection size:  "+ 
-    			dMatcher.getTrainDescriptors().size());  
+//    	Log.i(TAG, "DescriptorMatcher train collection size:  "+ 
+//    			dMatcher.getTrainDescriptors().size());  
     		
     	long done_building_lib= System.currentTimeMillis();
-    	Log.i(TAG, "Runtime to build dcrptLib: "+ (done_building_lib-start));
+//    	Log.i(TAG, "Runtime to build dcrptLib: "+ (done_building_lib-start));
     	
     	// get descriptors of the query image
     	// detect the matrix of key points of that image
     	Mat query_descriptors = imgDescriptor(rgbaQuery);
-		Log.i(TAG, "query img ID:  "+ rgbaQuery);
-		Log.i(TAG, "query img descriptors:  "+ query_descriptors.size());
+//		Log.i(TAG, "query img ID:  "+ rgbaQuery);
+//		Log.i(TAG, "query img descriptors:  "+ query_descriptors.size());
 		
     	// Match the descriptors of a query image 
     	// to descriptors in the training collection.
     	dMatcher.match(query_descriptors, matches);
-    	Log.i(TAG, "matrix of matches size:  "+ matches.size());
+//    	Log.i(TAG, "matrix of matches size:  "+ matches.size());
     	
 //    	// match with ratio test
 //    	dMatcher.knnMatch(query_descriptors, match_list, 2);
@@ -566,16 +571,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	// filter good matches
     	List<DMatch> total_matches = matches.toList();
     	List<DMatch> good_matches = filterGoodMatches(total_matches);
-    	Log.i(TAG, "list of all matches size:  "+ total_matches.size());
-    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
+//    	Log.i(TAG, "list of all matches size:  "+ total_matches.size());
+//    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
     	
     	// find the image that matches the most
     	Mat bestMatch = findBestMatch(good_matches);   
-    	Log.i(TAG, "bestMatch img:  "+ bestMatch);   
+//    	Log.i(TAG, "bestMatch img:  "+ bestMatch);   
     	
     	long done_matching= System.currentTimeMillis();
-    	Log.i(TAG, "Runtime to match: "+ (done_matching - done_building_lib));
-    	Log.i(TAG, "finishing detectFeatures");    	
+//    	Log.i(TAG, "Runtime to match: "+ (done_matching - done_building_lib));
+//    	Log.i(TAG, "finishing detectFeatures");    	
     	return bestMatch;    	
     }
         
@@ -591,9 +596,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     		// detect the matrix of key points of that image
     		Mat imgDescriptor = imgDescriptor(photoLib.get(i));    		
     		descriptor_list.add(imgDescriptor); 
-    		Log.i(TAG, "descriptor_list,one img descripters size:  "+ imgDescriptor.size());
+//    		Log.i(TAG, "descriptor_list,one img descripters size:  "+ imgDescriptor.size());
     	}    	    	
-    	Log.i(TAG, "descriptor_list size:  "+ descriptor_list.size());
+//    	Log.i(TAG, "descriptor_list size:  "+ descriptor_list.size());
     	
     	return descriptor_list;
     }
@@ -643,9 +648,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		        return (int) (kp2.response - kp1.response);
 		    }
 		});
-		Log.i(TAG, "listOfKeypoints size:  "+ listOfKeypoints.size());
+//		Log.i(TAG, "listOfKeypoints size:  "+ listOfKeypoints.size());
 		List<KeyPoint> bestImgKeyPoints = listOfKeypoints.subList(0,n);
-		Log.i(TAG, "bestImgKeyPoints size:  "+ bestImgKeyPoints.size());
+//		Log.i(TAG, "bestImgKeyPoints size:  "+ bestImgKeyPoints.size());
 		
 		MatOfKeyPoint result = new MatOfKeyPoint();
 		result.fromList(bestImgKeyPoints); 
@@ -708,9 +713,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	// search for the image that matches the largest number of descriptors.
     	Mat bestMatch= null;
     	Integer greatestCount=0;
-    	Log.i(TAG, "hashmap of matches size:  "+ hm.size());
+//    	Log.i(TAG, "hashmap of matches size:  "+ hm.size());
     	for(Mat trainImg: hm.keySet()){
-    		Log.i(TAG, "train img:  "+ trainImg);
+//    		Log.i(TAG, "train img:  "+ trainImg);
     		Integer count=hm.get(trainImg);
     		if(count> greatestCount){
     			greatestCount= count;
@@ -719,10 +724,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	}
     	
     	// print result
-    	for(Mat trainImg: hm.keySet()){
-    		Log.i(TAG, "Matched img result:  "+ trainImg +
-    				", numOfMatches: "+hm.get(trainImg));
-    	}    	
+//    	for(Mat trainImg: hm.keySet()){
+//    		Log.i(TAG, "Matched img result:  "+ trainImg +
+//    				", numOfMatches: "+hm.get(trainImg));
+//    	}    	
     	return bestMatch;
     }
     
