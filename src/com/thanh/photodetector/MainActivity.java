@@ -147,7 +147,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     		String photoPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+
 					"/Research/trial_set_1/test_photo_" +2+".jpg";
     		TrainingImage result = detector.detectPhoto(photoPath);
-    		displayPhoto(result.path());
+    		displayPhoto(result.pathID());
     	}
     	if(mIsLoadingLib){
     		// Load training images from some sources
