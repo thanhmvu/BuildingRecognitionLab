@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
@@ -53,16 +55,17 @@ public class ImageDetector {
     
     public void addToLibrary(String image_path, long tour_item_id)
     {
-    	TrainingImage img= new TrainingImage(image_path,tour_item_id);
-    	Mat imgDescriptor = imgDescriptor(img.mat());  
-    	// update descriptors of the image
-    	img.setDescriptors(imgDescriptor); 
+    	Mat img = Imgcodecs.imread(image_path);
+    	Mat resized_img = resize(img, 0.5);  // scale down the image	
+    	Mat imgDescriptor = imgDescriptor(resized_img);  
+    	
     	// add image to dMacher's internal training library
-    	List<Mat> descriptor_list= new ArrayList<Mat>();
-    	descriptor_list.add(imgDescriptor);
-    	dMatcher.add(descriptor_list); 
+    	dMatcher.add(Arrays.asList(imgDescriptor)); 
+    	
     	// add image to traing_library
-    	traing_library.add(img);
+    	TrainingImage training_img= new TrainingImage
+    			(image_path, tour_item_id, resized_img, imgDescriptor);
+    	traing_library.add(training_img);
     }
 
     public void clearLibrary()
@@ -78,15 +81,25 @@ public class ImageDetector {
     	TrainingImage result = detectPhoto(image_path);
     	return result.tourID();
     }
-    
+
+    public Mat resize(Mat src_img, double multiplier)
+    {
+		// scale down images
+		Mat resized_img= new Mat();
+		Size size= new Size(src_img.size().width*multiplier, src_img.size().height*multiplier);
+		Imgproc.resize(src_img, resized_img, size);
+		return resized_img;
+    }
+	
     // Method that detects a given image based on the training library    
     public TrainingImage detectPhoto(String query_path){
     	Log.i(TAG, "called detectFeatures");
     	long start= System.currentTimeMillis();    
     	
     	MatOfDMatch matches= new MatOfDMatch();
-    	Mat rgbaQuery = Imgcodecs.imread(query_path);
-
+    	Mat img = Imgcodecs.imread(query_path);
+    	Mat rgbaQuery = resize(img, 0.5); // scale down the dquery image
+    	
     	// get descriptors of the query image
     	// detect the matrix of key points of that image
     	Mat query_descriptors = imgDescriptor(rgbaQuery);
@@ -105,7 +118,7 @@ public class ImageDetector {
     	
     	// find the image that matches the most
     	TrainingImage bestMatch = findBestMatch(good_matches);   
-    	Log.i(TAG, "bestMatch img:  "+ bestMatch.path());   
+    	Log.i(TAG, "bestMatch img:  "+ bestMatch.pathID());   
     	
     	long done_matching= System.currentTimeMillis();
     	Log.i(TAG, "Runtime to match: "+ (done_matching - start));
@@ -206,9 +219,90 @@ public class ImageDetector {
     	
     	// print result
     	for(TrainingImage trainImg: hm.keySet()){
-    		Log.i(TAG, "Matched img result:  "+ trainImg.path() +
+    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
     				", numOfMatches: "+hm.get(trainImg));
     	}    	
     	return bestMatch;
     }    
+
+    // Method that displays the image and its features 
+    // on the device's screen
+    public void drawFeatures(Mat rgba){
+    	MatOfKeyPoint keyPoints = new MatOfKeyPoint();    	
+    	Imgproc.cvtColor(rgba, rgba, Imgproc.COLOR_RGBA2RGB);
+    	fDetector.detect(rgba, keyPoints);
+    	Features2d.drawKeypoints(rgba,keyPoints,rgba);
+    	Imgproc.cvtColor(rgba, rgba, Imgproc.COLOR_RGB2RGBA);
+    }
+    
+    private void alternateFilter()
+    {
+//		// set threshold to 100 (instead of 1) to reduce the number of key points
+//		// not work for new opencv
+//		try {
+//			File outputDir = getCacheDir(); // If in an Activity (otherwise getActivity.getCacheDir();
+//			File outputFile = File.createTempFile("orbDetectorParams", ".YAML", outputDir);
+//			writeToFile(outputFile, "%YAML:1.0\nthreshold: 100 \nnonmaxSupression: true\n");
+//			fDetector.read(outputFile.getPath());
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+    }
+    
+    // (URL Source) http://answers.opencv.org/question/3167/java-how-to-set-parameters-to-orb-featuredetector/?answer=17296#post-id-17296
+    private void writeToFile(File file, String data) {
+        try {
+			FileOutputStream stream = new FileOutputStream(file);
+			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(stream);
+			outputStreamWriter.write(data);
+			outputStreamWriter.close();
+			stream.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+
+    private void ratioTest()
+    {
+
+//    	// match with ratio test
+//    	List<MatOfDMatch> match_list = new ArrayList<MatOfDMatch>();
+//    	dMatcher.knnMatch(query_descriptors, match_list, 2);
+//    	Log.i(TAG, "knnMatch, k=2, match_list size:  "+  match_list.size());
+//    	List<DMatch> tested_dMatch = new ArrayList<DMatch>();
+//    	for(MatOfDMatch mat: match_list)
+//    	{
+//    		List<DMatch> dMatches = mat.toList();
+//    		Log.i(TAG, "dMatches.size:  "+  dMatches.size());
+//    		if(dMatches.size() <2)
+//    		{
+//    			tested_dMatch.add(dMatches.get(0));
+//    		}else{
+//	    		Log.i(TAG, "dMatches get (0):  "+  
+//	    				dMatches.get(0).distance +"  "+
+//	    				dMatches.get(0).imgIdx +"  "+ 
+//	    				dMatches.get(0).queryIdx +"  "+ 
+//	    				dMatches.get(0).trainIdx);
+//	    		Log.i(TAG, "dMatches get (1):  "+  
+//	    				dMatches.get(1).distance +"  "+
+//	    				dMatches.get(1).imgIdx +"  "+ 
+//	    				dMatches.get(1).queryIdx +"  "+ 
+//	    				dMatches.get(1).trainIdx);
+//	    		if(dMatches.get(0).distance < 0.75 * dMatches.get(1).distance)
+//	    		{
+//	    			tested_dMatch.add(dMatches.get(0));
+//	    		}
+//    		}
+//    	}
+//    	// filter good matches
+//    	List<DMatch> total_matches = tested_dMatch;
+//    	List<DMatch> good_matches = tested_dMatch;
+    	
+    }
 }
