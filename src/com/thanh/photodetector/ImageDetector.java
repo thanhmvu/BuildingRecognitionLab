@@ -33,6 +33,8 @@ public class ImageDetector {
     private DescriptorExtractor dExtractor;
     private DescriptorMatcher dMatcher;
     
+    private double multiplier;
+    
     // tag of messages printed to LogCat
     protected static final String TAG = "ImageDetector";
     
@@ -42,21 +44,34 @@ public class ImageDetector {
     // A list of all training photos
     private List<TrainingImage> traing_library;
     
-    public ImageDetector()
+//    public ImageDetector()
+//    {
+//    	fDetector = FeatureDetector.create
+//				(FeatureDetector.FAST);
+//		dExtractor = DescriptorExtractor.create
+//				(DescriptorExtractor.ORB);
+//		dMatcher= DescriptorMatcher.create
+//				(DescriptorMatcher.BRUTEFORCE_HAMMING);
+//		traing_library= new ArrayList<TrainingImage>();
+//		multiplier = 0.5;
+//    }
+    
+    public ImageDetector(int detector_type, int extractor_type, int matcher_type)
     {
     	fDetector = FeatureDetector.create
-				(FeatureDetector.FAST);
+				(detector_type);
 		dExtractor = DescriptorExtractor.create
-				(DescriptorExtractor.ORB);
+				(extractor_type);
 		dMatcher= DescriptorMatcher.create
-				(DescriptorMatcher.BRUTEFORCE_HAMMING);
+				(matcher_type);
 		traing_library= new ArrayList<TrainingImage>();
+		multiplier = 0.5;
     }
     
     public void addToLibrary(String image_path, long tour_item_id)
     {
     	Mat img = Imgcodecs.imread(image_path);
-    	Mat resized_img = resize(img, 0.5);  // scale down the image	
+    	Mat resized_img = resize(img);  // scale down the image	
     	Mat imgDescriptor = imgDescriptor(resized_img);  
     	
     	// add image to dMacher's internal training library
@@ -82,7 +97,7 @@ public class ImageDetector {
     	return result.tourID();
     }
 
-    public Mat resize(Mat src_img, double multiplier)
+    public Mat resize(Mat src_img)
     {
 		// scale down images
 		Mat resized_img= new Mat();
@@ -93,36 +108,33 @@ public class ImageDetector {
 	
     // Method that detects a given image based on the training library    
     public TrainingImage detectPhoto(String query_path){
-    	Log.i(TAG, "called detectFeatures");
-    	long start= System.currentTimeMillis();    
+//    	Log.i(TAG, "called detectFeatures");   
     	
     	MatOfDMatch matches= new MatOfDMatch();
     	Mat img = Imgcodecs.imread(query_path);
-    	Mat rgbaQuery = resize(img, 0.5); // scale down the dquery image
+    	Mat rgbaQuery = resize(img); // scale down the dquery image
     	
     	// get descriptors of the query image
     	// detect the matrix of key points of that image
     	Mat query_descriptors = imgDescriptor(rgbaQuery);
-		Log.i(TAG, "query img descriptors:  "+ query_descriptors.size());
+//		Log.i(TAG, "query img descriptors:  "+ query_descriptors.size());
 		
     	// Match the descriptors of a query image 
     	// to descriptors in the training collection.
     	dMatcher.match(query_descriptors, matches);
-    	Log.i(TAG, "matrix of matches size:  "+ matches.size());
+//    	Log.i(TAG, "matrix of matches size:  "+ matches.size());
     	
     	// filter good matches
     	List<DMatch> total_matches = matches.toList();
     	List<DMatch> good_matches = filterGoodMatches(total_matches);
-    	Log.i(TAG, "list of all matches size:  "+ total_matches.size());
-    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
+//    	Log.i(TAG, "list of all matches size:  "+ total_matches.size());
+//    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
     	
     	// find the image that matches the most
     	TrainingImage bestMatch = findBestMatch(good_matches);   
-    	Log.i(TAG, "bestMatch img:  "+ bestMatch.pathID());   
+//    	Log.i(TAG, "bestMatch img:  "+ bestMatch.pathID());   
     	
-    	long done_matching= System.currentTimeMillis();
-    	Log.i(TAG, "Runtime to match: "+ (done_matching - start));
-    	Log.i(TAG, "finishing detectFeatures");    	
+//    	Log.i(TAG, "finishing detectFeatures");    	
     	return bestMatch;    	
     }
         
@@ -135,7 +147,7 @@ public class ImageDetector {
 		fDetector.detect(img, imgKeyPoints);
 
 		// filter the best key points
-		imgKeyPoints= topKeyPoints(imgKeyPoints, 500);
+		imgKeyPoints= topKeyPoints(imgKeyPoints, 700);
 		
 		// compute the descriptor from those key points
 		dExtractor.compute(img,imgKeyPoints, imgDescriptor);
@@ -145,7 +157,7 @@ public class ImageDetector {
     // Method that returns the top 'n' best key points 
     private MatOfKeyPoint topKeyPoints(MatOfKeyPoint imgKeyPoints, int n)
     {
-		Log.i(TAG, "imgKeyPoints size:  "+ imgKeyPoints.size());
+//		Log.i(TAG, "imgKeyPoints size:  "+ imgKeyPoints.size());
 		// Sort and select n best key points
 		List<KeyPoint> listOfKeypoints = imgKeyPoints.toList();
 		if(listOfKeypoints.size()<n){
@@ -159,9 +171,9 @@ public class ImageDetector {
 		        return (int) (kp2.response - kp1.response);
 		    }
 		});
-		Log.i(TAG, "listOfKeypoints size:  "+ listOfKeypoints.size());
+//		Log.i(TAG, "listOfKeypoints size:  "+ listOfKeypoints.size());
 		List<KeyPoint> bestImgKeyPoints = listOfKeypoints.subList(0,n);
-		Log.i(TAG, "bestImgKeyPoints size:  "+ bestImgKeyPoints.size());
+//		Log.i(TAG, "bestImgKeyPoints size:  "+ bestImgKeyPoints.size());
 		
 		MatOfKeyPoint result = new MatOfKeyPoint();
 		result.fromList(bestImgKeyPoints); 
@@ -207,9 +219,9 @@ public class ImageDetector {
     	// search for the image that matches the largest number of descriptors.
     	TrainingImage bestMatch= null;
     	Integer greatestCount=0;
-    	Log.i(TAG, "hashmap of matches size:  "+ hm.size());
+//    	Log.i(TAG, "hashmap of matches size:  "+ hm.size());
     	for(TrainingImage trainImg: hm.keySet()){
-    		Log.i(TAG, "train img:  "+ trainImg);
+//    		Log.i(TAG, "train img:  "+ trainImg);
     		Integer count=hm.get(trainImg);
     		if(count> greatestCount){
     			greatestCount= count;
@@ -218,10 +230,10 @@ public class ImageDetector {
     	}
     	
     	// print result
-    	for(TrainingImage trainImg: hm.keySet()){
-    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
-    				", numOfMatches: "+hm.get(trainImg));
-    	}    	
+//    	for(TrainingImage trainImg: hm.keySet()){
+//    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
+//    				", numOfMatches: "+hm.get(trainImg));
+//    	}    	
     	return bestMatch;
     }    
 

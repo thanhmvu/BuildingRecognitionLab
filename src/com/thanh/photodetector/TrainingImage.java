@@ -2,14 +2,11 @@ package com.thanh.photodetector;
 
 import org.opencv.core.Mat;
 
-import android.net.Uri;
-
 public class TrainingImage {
 	private String path_id;
 	private long tour_id;
 	private Mat image;
 	private Mat descriptors;
-	private Uri uri;
 	
 	public TrainingImage(){}
 	
