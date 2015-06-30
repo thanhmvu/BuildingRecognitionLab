@@ -177,9 +177,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			return; 
 		}  
 		
-		// Try to create the photo. 
-		Imgproc.cvtColor(rgba, mBgr, Imgproc.COLOR_RGBA2BGR, 3); 
-		if (!Imgcodecs.imwrite(photoPath, mBgr)) {
+		// Try to create the photo.  
+		if (!Imgcodecs.imwrite(photoPath, rgba)) {
 			Log.e(TAG, "Failed to save photo to " + photoPath);
 			onSavePhotoFailed(); 
 		} 
