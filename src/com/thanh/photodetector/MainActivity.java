@@ -1,10 +1,11 @@
-package com.thanh.photodetector;
+ package com.thanh.photodetector;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -13,10 +14,15 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.DMatch;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Point;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.Features2d;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
@@ -139,10 +145,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	Mat rgba= inputFrame.rgba();
     	
     	if(mIsTakingPhoto){
-    		mIsTakingPhoto= false;
-    		// Save the image and retrieve its URI
-    		savePhoto(rgba);
-    	}    	
+    		mIsTakingPhoto= false;  	}    	
     	if(mIsObjectDetecting){
     		mIsObjectDetecting=false;
     		runExperiment();
@@ -152,21 +155,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	}
     	return rgba;
     }
-    
-    // Method that save the give image to open storage in the device
-    private void savePhoto(final Mat rgba) { 
-		// Determine the path and metadata for the photo. 
+
+    public void savePhoto(Mat rgba, String photoName, String albumPath)
+    {
+    	// Determine the path and meta data for the photo. 
 		final long currentTimeMillis = System.currentTimeMillis(); 
 		final String appName = getString(R.string.app_name); 
-		final String galleryPath = 
-				Environment.getExternalStoragePublicDirectory( 
-						Environment.DIRECTORY_PICTURES).toString(); 
-		final String albumPath = galleryPath + File.separator + appName; 
-		final String photoPath = albumPath + File.separator + 
-				currentTimeMillis + ".png"; 
+		final String photoPath = albumPath + File.separator + photoName; 
 		final ContentValues values = new ContentValues();  
 		values.put(MediaStore.MediaColumns.DATA, photoPath); 
-		values.put(Images.Media.TITLE, appName); 
+		values.put(Images.Media.TITLE, photoName); 
 		values.put(Images.Media.DESCRIPTION, appName); 
 		values.put(Images.Media.DATE_TAKEN, currentTimeMillis); 
 		
@@ -188,6 +186,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		Log.d(TAG, "Photo saved successfully to " + photoPath);
 		
 		// Try to insert the photo into the MediaStore.
+		@SuppressWarnings("unused")
 		Uri uri;
 		try { 
 			uri = getContentResolver().insert( 
@@ -205,13 +204,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			return;
 		}
 		
-		// Open the photo in DisplayResultActivity.
-        final Intent intent = new Intent(this, DisplayResultActivity.class);
-        intent.putExtra(DisplayResultActivity.EXTRA_PHOTO_URI,uri);
-        intent.putExtra(DisplayResultActivity.EXTRA_PHOTO_PATH,photoPath);
-        startActivity(intent);
-	}
-	
+//		// Open the photo in DisplayResultActivity.
+//        final Intent intent = new Intent(this, DisplayResultActivity.class);
+//        intent.putExtra(DisplayResultActivity.EXTRA_PHOTO_URI,uri);
+//        intent.putExtra(DisplayResultActivity.EXTRA_PHOTO_PATH,photoPath);
+//        startActivity(intent);
+    }
+    
 	private void onSavePhotoFailed() { 
 		mIsMenuLocked = false; 
 		// Show an error message. 
@@ -264,7 +263,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     {
     	String folderName = "Research";
 		DateFormat dF= new SimpleDateFormat("yyyyMMdd_HHmmss");
-    	String outputName = "outputData_"+dF.format(new Date())+".txt";
+		String time = dF.format(new Date());
+    	String outputName = "outputData_"+time+".txt";
     	String inputFolder = Environment.getExternalStoragePublicDirectory
     			(Environment.DIRECTORY_PICTURES)+ "/Research/database/";
     	
@@ -301,7 +301,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             writer.append("Extractor type: "+extractor_type+"\n");
             writer.append("Matcher type: "+matcher_type+"\n"+"\n");            
 
-    		//	(!) WARNING: 	hard cord in ImageDetector class
+    		//	(!) WARNING: 	hard code in ImageDetector class
             //					number_of_keypoint = 700
             //					image_resizing_factor = 0.5
             writer.append("Number of key points for each image: 700"+"\n"); //HARD CODE
@@ -315,8 +315,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		    	for (int b = 0; b < number_of_buildings ; b++) {
 		    		int d=1;
 					String photoName= b+"_"+a+"_"+d+".jpg";
-					String photoPath = inputFolder + photoName;
+					String photoPath = inputFolder +"b"+b+"/"+ photoName;
 					detector.addToLibrary(photoPath, b);
+					Log.i(TAG, "Added 1 new image to the library");
 					count_training_images++;
 				}    	
 	    	}
@@ -325,33 +326,41 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    	Log.i(TAG, "Runtime to build library: "+ (done_building_lib - start)
 	    			+" for "+count_training_images+ " training images" ); 
 	    	writer.append("Runtime to build library: "+ (done_building_lib - start)
-	    			+" for "+count_training_images+ " training images" + "\n");
+	    			+" for "+count_training_images+ " training images" + "\n"+ "\n");
 	    	
 	    	//// Detect photos 
     		long startD = System.currentTimeMillis();
 	    	int count_detected_images = 0;
-			for (int a = 0; a < number_of_angles ; a++) {
-				for (int d = 0; d < variation_of_distance ; d++) {
+			for (int a = 0; a < 1 ; a++) {
+				for (int d = 0; d < 1 ; d++) {
 			    	int countCorrectMatch =0;
 			    	for (int b = 0; b < number_of_buildings ; b++) {
 			    		// load the query image
 			    		
 				    	String photoName= b+"_"+a+"_"+d+".jpg";
-						String query_path = inputFolder + photoName;
+						String query_path = inputFolder +"b"+b+"/"+ photoName;
 						TrainingImage result = detector.detectPhoto(query_path);
 
+						String matchName = new File(result.pathID()).getName();
 				    	if(result.tourID() == b){
 				    		countCorrectMatch++;
 				    	}else{
-				    		String matchName = new File(result.pathID()).getName();
 				    		Log.i(TAG, "Mismatched: "+ photoName+" with "+matchName);
-				    		writer.append( "Mismatched: "+photoName+" with "+matchName +"; ");
+				    		writer.append( "Mismatched: "+photoName+" with "+matchName +"\n");
+
+				    		// visualize and save the mismatch
+							String image_of_matches_name = System.currentTimeMillis()+ "_"
+									+ b + "_" + a + "_" + d + "_to_" + matchName;
+					    	Mat image_of_matches = detector.drawCurrentMatches();
+				    		savePhoto(image_of_matches, image_of_matches_name,
+				    				Environment.getExternalStorageDirectory().toString()+
+				    				"/" + folderName + "/visualTest");
 				    	}
 				    	count_detected_images++;
 			    	}
 			    	double accuracy = (double)countCorrectMatch*100/number_of_buildings ;
 			    	Log.i(TAG, "a"+a+"_d"+d+", accuracy: "+accuracy+"%");    
-			    	writer.append("\n"+"a"+a+"_d"+d+" "+accuracy+"%"+"\n"+"\n");
+			    	writer.append("==> a"+a+"_d"+d+" "+accuracy+"%"+"\n"+"\n");
 			    	writer.flush();
 				}
 			}
