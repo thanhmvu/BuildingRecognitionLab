@@ -350,7 +350,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 				    		// visualize and save the mismatch
 							String image_of_matches_name = System.currentTimeMillis()+ "_"
 									+ b + "_" + a + "_" + d + "_to_" + matchName;
-					    	Mat image_of_matches = detector.drawCurrentMatches();
+					    	Mat image_of_matches = detector.drawCurrentMatches(20);
 				    		savePhoto(image_of_matches, image_of_matches_name,
 				    				Environment.getExternalStorageDirectory().toString()+
 				    				"/" + folderName + "/visualTest");

@@ -166,7 +166,7 @@ public class ImageDetector {
     	return result;
     }
     
-    public Mat drawCurrentMatches()
+    public Mat drawCurrentMatches(int n)
     {
     	Mat img1 = CURRENT_QUERY_IMAGE.image();
     	MatOfKeyPoint kp1= CURRENT_QUERY_IMAGE.keyPoints();
@@ -175,7 +175,7 @@ public class ImageDetector {
     	Mat result = new Mat();
     	
     	Features2d.drawMatches(img1, kp1, img2, kp2, 
-    			sortedKMatches(CURRENT_GOOD_MATCHES,0,20), result);
+    			sortedKMatches(CURRENT_GOOD_MATCHES,0,n), result);
     	return result;
     }
 
