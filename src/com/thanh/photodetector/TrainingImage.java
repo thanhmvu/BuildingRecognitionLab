@@ -1,18 +1,29 @@
 package com.thanh.photodetector;
 
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
 
 public class TrainingImage {
 	private String path_id;
 	private long tour_id;
 	private Mat image;
+	private MatOfKeyPoint key_points;
 	private Mat descriptors;
 	
 	public TrainingImage(){}
 	
-	public TrainingImage(String image_path)
+	public TrainingImage(String image_path, long tour_item_id, Mat	given_image)
 	{
 		path_id = image_path;
+		tour_id = tour_item_id;
+		image = given_image;
+	}
+	
+	public TrainingImage(String image_path, Mat	given_image, Mat given_descriptors)
+	{
+		path_id = image_path;
+		image = given_image;
+		descriptors = given_descriptors;
 	}
 	
 	public TrainingImage(String image_path, long tour_item_id, 
@@ -44,6 +55,11 @@ public class TrainingImage {
 		descriptors=descrpt;
 	}
 	
+	public void setKeyPoints(MatOfKeyPoint new_key_points)
+	{
+		key_points = new_key_points;
+	}
+	
 	public Mat image(){
 		return image;
 	}
@@ -58,6 +74,10 @@ public class TrainingImage {
 	
 	public Mat descriptors(){
 		return descriptors;
+	}
+	
+	public MatOfKeyPoint keyPoints(){
+		return key_points;
 	}
 	
 }
