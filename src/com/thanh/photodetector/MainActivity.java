@@ -66,9 +66,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
  	// Whether the library of training images is being loaded
  	private boolean mIsLoadingLib;
  	
- 	// A matrix that is used when saving photos.
- 	private Mat mBgr;
-
  	// A camera object that allows the app to access the device's camera
     private CameraBridgeViewBase mOpenCvCameraView;    
     
@@ -79,9 +76,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
-        			mBgr= new Mat();
-        			
+                    mOpenCvCameraView.enableView();        			
                 } break;
                 default:
                 {
@@ -260,10 +255,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     @SuppressLint("SimpleDateFormat")
 	public void runExperiment()
     {
-    	String folderName = "Research";
 		DateFormat dF= new SimpleDateFormat("yyyyMMdd_HHmmss");
 		String time = dF.format(new Date());
     	String outputName = "outputData_"+time+".txt";
+    	String folderName = "Research/output"+time;
     	String inputFolder = Environment.getExternalStoragePublicDirectory
     			(Environment.DIRECTORY_PICTURES)+ "/Research/database/";
     	
@@ -275,10 +270,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	// 				[key point filter], [good match filter], [count best match],
     	// 				which, in turn, affect the outcome.
 		ImageDetector detector = new ImageDetector(	
-				FeatureDetector.FAST,
+				FeatureDetector.ORB,
 				DescriptorExtractor.ORB,
 				DescriptorMatcher.BRUTEFORCE_HAMMING);
-		String detector_type = "FAST"; 
+		String detector_type = "ORB"; 
 		String extractor_type = "ORB";
 		String matcher_type = "BRUTEFORCE_HAMMING";
 		
@@ -291,14 +286,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             File gpxfile = new File(root, outputName);
             FileWriter writer = new FileWriter(gpxfile);
             
-            writer.append("[Experiment setup and results]" +"\n");
-            writer.append("Number of buildings: "+number_of_buildings+"\n");
-            writer.append("Number of angles: "+number_of_angles+"\n");
-            writer.append("Variation of distance: "+variation_of_distance+"\n"+"\n");
+            writer.append("[Experiment setup and results]" + "\n");
+            writer.append("Number of buildings: " + number_of_buildings + "\n");
+            writer.append("Number of angles: " + number_of_angles + "\n");
+            writer.append("Variation of distance: " + variation_of_distance + "\n" + "\n");
             
-            writer.append("Detector type: "+detector_type+"\n");
-            writer.append("Extractor type: "+extractor_type+"\n");
-            writer.append("Matcher type: "+matcher_type+"\n"+"\n");            
+            writer.append("Detector type: " + detector_type + "\n");
+            writer.append("Extractor type: " + extractor_type + "\n");
+            writer.append("Matcher type: " + matcher_type + "\n" + "\n");            
 
     		//	(!) WARNING: 	hard code in ImageDetector class
             //					number_of_keypoint = 700
@@ -330,8 +325,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    	//// Detect photos 
     		long startD = System.currentTimeMillis();
 	    	int count_detected_images = 0;
-			for (int a = 0; a < 1 ; a++) {
-				for (int d = 0; d < 1 ; d++) {
+	    	int count_visualized_match = 0;
+	    	int count_visualized_mismatch = 0;
+			for (int a = 0; a < number_of_angles ; a++) {
+				for (int d = 0; d < variation_of_distance ; d++) {
 			    	int countCorrectMatch =0;
 			    	for (int b = 0; b < number_of_buildings ; b++) {
 			    		// load the query image
@@ -343,17 +340,31 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 						String matchName = new File(result.pathID()).getName();
 				    	if(result.tourID() == b){
 				    		countCorrectMatch++;
+				    		
+				    		// visualize and save the match
+				    		if(count_visualized_match <= 10){
+				    			count_visualized_match++;
+								String image_of_matches_name = System.currentTimeMillis()+ "_"
+										+ b + "_" + a + "_" + d + "_to_" + matchName;
+						    	Mat image_of_matches = detector.drawCurrentMatches(20);
+					    		savePhoto(image_of_matches, image_of_matches_name,
+					    				Environment.getExternalStorageDirectory().toString()+
+					    				"/" + folderName + "/matches");
+				    		}
 				    	}else{
 				    		Log.i(TAG, "Mismatched: "+ photoName+" with "+matchName);
 				    		writer.append( "Mismatched: "+photoName+" with "+matchName +"\n");
 
 				    		// visualize and save the mismatch
-							String image_of_matches_name = System.currentTimeMillis()+ "_"
-									+ b + "_" + a + "_" + d + "_to_" + matchName;
-					    	Mat image_of_matches = detector.drawCurrentMatches(20);
-				    		savePhoto(image_of_matches, image_of_matches_name,
-				    				Environment.getExternalStorageDirectory().toString()+
-				    				"/" + folderName + "/visualTest");
+				    		if(count_visualized_mismatch <= 10){
+				    			count_visualized_mismatch++;
+								String image_of_matches_name = System.currentTimeMillis()+ "_"
+										+ b + "_" + a + "_" + d + "_to_" + matchName;
+						    	Mat image_of_matches = detector.drawCurrentMatches(20);
+					    		savePhoto(image_of_matches, image_of_matches_name,
+					    				Environment.getExternalStorageDirectory().toString()+
+					    				"/" + folderName + "/mismatches");
+				    		}
 				    	}
 				    	count_detected_images++;
 			    	}
