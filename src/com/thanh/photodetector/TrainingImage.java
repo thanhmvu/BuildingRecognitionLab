@@ -1,5 +1,7 @@
 package com.thanh.photodetector;
 
+import java.io.File;
+
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
 
@@ -58,6 +60,11 @@ public class TrainingImage {
 	public void setKeyPoints(MatOfKeyPoint new_key_points)
 	{
 		key_points = new_key_points;
+	}
+	
+	public String name(){
+		String name = new File(path_id).getName();
+		return name;
 	}
 	
 	public Mat image(){
