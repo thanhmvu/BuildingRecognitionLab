@@ -260,7 +260,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	String outputName = "outputData_"+time+".txt";
     	
     	String testName_m = "testData_m.csv";
-    	String testName_m_i = "testData_m_i.csv";
     	String testName_mm = "testData_mm.csv";
     	String testName_mm_i = "testData_mm_i.csv";
     	
@@ -276,10 +275,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	// 				[key point filter], [good match filter], [count best match],
     	// 				which, in turn, affect the outcome.
 		ImageDetector detector = new ImageDetector(	
-				FeatureDetector.FAST,
+				FeatureDetector.ORB,
 				DescriptorExtractor.ORB,
 				DescriptorMatcher.BRUTEFORCE_HAMMING);
-		String detector_type = "FAST"; 
+		String detector_type = "ORB"; 
 		String extractor_type = "ORB";
 		String matcher_type = "BRUTEFORCE_HAMMING";
 		
@@ -294,9 +293,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             
             File gpxfile_m = new File(root, testName_m);
             FileWriter writer_m = new FileWriter(gpxfile_m);
-            
-            File gpxfile_m_i = new File(root, testName_m_i);
-            FileWriter writer_m_i = new FileWriter(gpxfile_m_i);
             
             File gpxfile_mm = new File(root, testName_mm);
             FileWriter writer_mm = new FileWriter(gpxfile_mm);
@@ -356,44 +352,42 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 						String query_path = inputFolder +"/"+"b"+b+"/"+ photoName;
 						TrainingImage result = detector.detectPhoto(query_path);
 
-						String matchName = result.name();
-				    	if(result.tourID() == b){
-				    		countCorrectMatch++;
-				    		
-				    		// visualize and save the match
-				    		if(count_visualized_match < 50 && !(a==0 && d==1)){
-				    			count_visualized_match++;
-				    			
-				    			if(count_visualized_match < 20){
-				    			// save visualized image
-								String image_of_matches_name = System.currentTimeMillis()+ "_"
-										+ b + "_" + a + "_" + d + "_to_" + matchName;
-						    	Mat image_of_matches = detector.drawCurrentMatches(20);
-					    		savePhoto(image_of_matches, image_of_matches_name,
-					    				Environment.getExternalStorageDirectory().toString()+
-					    				"/" + folderName + "/matches");
-				    			}
+						if(result == null){
+							Log.i(TAG, "Can't identify the image!");
+						}else{
+							String matchName = result.name();
+					    	if(result.tourID() == b){
+					    		countCorrectMatch++;
 					    		
-					    		// print frequency
-					    		String frequency = "Matches, ";
-					    		String match_images = "Match images, ";
-					    		for(TrainingImage trainImg: detector.CURRENT_MATCH_FREQUENCY.keySet()){
-					        		Integer i=detector.CURRENT_MATCH_FREQUENCY.get(trainImg);
-					        		frequency += i +", ";
-					        		match_images += trainImg.name()+", ";
-					        	}
-				        		Log.i(TAG, frequency);
-				    			writer_m.append(count_visualized_match+", "+frequency+"\n");
-				    			writer_m.flush();
-				    			writer_m_i.append(count_visualized_match+", "+match_images+"\n");
-				    			writer_m_i.flush();
-				    		}
-				    	}else{
-				    		Log.i(TAG, "Mismatched: "+ photoName+" with "+matchName);
-				    		writer.append( "Mismatched: "+photoName+" with "+matchName +"\n");
-
-				    		// visualize and save the mismatch
-				    		if(count_visualized_mismatch < 50){
+					    		// visualize and save the match
+					    		if(!(a==0 && d==1)){
+					    			count_visualized_match++;
+					    			
+					    			if(count_visualized_match < 20){
+					    			// save visualized image
+									String image_of_matches_name = System.currentTimeMillis()+ "_"
+											+ b + "_" + a + "_" + d + "_to_" + matchName;
+							    	Mat image_of_matches = detector.drawCurrentMatches(20);
+						    		savePhoto(image_of_matches, image_of_matches_name,
+						    				Environment.getExternalStorageDirectory().toString()+
+						    				"/" + folderName + "/matches");
+					    			}
+						    		
+						    		// print frequency
+						    		String frequency = "Matches, ";
+						    		for(TrainingImage trainImg: detector.CURRENT_MATCH_FREQUENCY.keySet()){
+						        		Integer i=detector.CURRENT_MATCH_FREQUENCY.get(trainImg);
+						        		frequency += i +", ";
+						        	}
+					        		Log.i(TAG, frequency);
+					    			writer_m.append(count_visualized_match+", "+frequency+"\n");
+					    			writer_m.flush();
+					    		}
+					    	}else{
+					    		Log.i(TAG, "Mismatched: "+ photoName+" with "+matchName);
+					    		writer.append( "Mismatched: "+photoName+" with "+matchName +"\n");
+	
+					    		// visualize and save the mismatch
 				    			count_visualized_mismatch++;
 				    			
 				    			if(count_visualized_mismatch < 20){
@@ -405,10 +399,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 					    				Environment.getExternalStorageDirectory().toString()+
 					    				"/" + folderName + "/mismatches");
 				    			}
-
+	
 					    		// print frequency
 					    		String frequency = "Mismatches, ";
-					    		String mismatch_images = "Mismatch images, ";
+					    		String mismatch_images =photoName+ "_Mismatch images, ";
 					    		for(TrainingImage trainImg: detector.CURRENT_MATCH_FREQUENCY.keySet()){
 					        		Integer i=detector.CURRENT_MATCH_FREQUENCY.get(trainImg);
 					        		frequency += i +", ";
@@ -419,8 +413,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 				    			writer_mm.flush();
 				    			writer_mm_i.append(count_visualized_mismatch+", "+mismatch_images+"\n");
 				    			writer_mm_i.flush();
-				    		}				    		
-				    	}
+					    	}
+						}
 				    	count_detected_images++;
 			    	}
 			    	double accuracy = (double)countCorrectMatch*100/number_of_buildings ;
@@ -434,7 +428,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    	writer.append("Runtime to detect 1 image: "+(endD-startD)/count_detected_images +"\n");
 			writer.close();
 			writer_m.close();
-			writer_m_i.close();
 			writer_mm.close();
 			writer_mm_i.close();
 //          Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();	        

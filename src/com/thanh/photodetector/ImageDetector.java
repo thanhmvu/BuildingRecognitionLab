@@ -43,7 +43,7 @@ public class ImageDetector {
     protected static final String ERROR = "Error in ImageDetector";
     
     // A list of all training photos
-    private List<TrainingImage> traing_library;
+    private List<TrainingImage> training_library;
     
 //    public ImageDetector()
 //    {
@@ -53,7 +53,7 @@ public class ImageDetector {
 //				(DescriptorExtractor.ORB);
 //		dMatcher= DescriptorMatcher.create
 //				(DescriptorMatcher.BRUTEFORCE_HAMMING);
-//		traing_library= new ArrayList<TrainingImage>();
+//		training_library= new ArrayList<TrainingImage>();
 //		multiplier = 0.5;
 //    }
     
@@ -65,9 +65,9 @@ public class ImageDetector {
 				(extractor_type);
 		dMatcher= DescriptorMatcher.create
 				(matcher_type);
-		traing_library= new ArrayList<TrainingImage>();
+		training_library= new ArrayList<TrainingImage>();
 		multiplier = 0.5;
-		number_of_key_points = 700;
+		number_of_key_points = 1000;
     }
     
     public void addToLibrary(String image_path, long tour_item_id)
@@ -78,16 +78,16 @@ public class ImageDetector {
     	Mat imgDescriptor = imgDescriptor(training_img);  
     	
     	// add image to dMacher's internal training library
-    	dMatcher.add(Arrays.asList(imgDescriptor)); 
+    	dMatcher.add(Arrays.asList(imgDescriptor));
     	
-    	// add image to traing_library    	
-    	traing_library.add(training_img);
+    	// add image to training_library    	
+    	training_library.add(training_img);
     }
 
     public void clearLibrary()
     {
     	// clear ImageDetector's library
-    	traing_library= new ArrayList<TrainingImage>();
+    	training_library= new ArrayList<TrainingImage>();
     	// clear dMatcher's internal library
     	dMatcher.clear();
     }
@@ -133,7 +133,8 @@ public class ImageDetector {
     	
     	// filter good matches
     	List<DMatch> total_matches = matches.toList();
-    	List<DMatch> good_matches = filterGoodMatches(total_matches);
+    	List<DMatch> good_matches = total_matches;
+//    	List<DMatch> good_matches = filterGoodMatches(total_matches);
 //    	Log.i(TAG, "list of all matches size:  "+ total_matches.size());
 //    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
 
@@ -155,7 +156,7 @@ public class ImageDetector {
     	List<DMatch> matches_of_bestMatch = new ArrayList<DMatch>();
     	// loop to filter matches of train images, which are not the bestMatch image
     	for(DMatch aMatch: good_matches){    		
-    		TrainingImage trainImg = traing_library.get(aMatch.imgIdx);   
+    		TrainingImage trainImg = training_library.get(aMatch.imgIdx);   
     		if (trainImg == bestMatch)
     		{
     			matches_of_bestMatch.add(aMatch);
@@ -209,7 +210,7 @@ public class ImageDetector {
 
 		// filter the best key points
 		imgKeyPoints= topKeyPoints(imgKeyPoints, number_of_key_points);
-		
+
 		// compute the descriptor from those key points
 		dExtractor.compute(img,imgKeyPoints, imgDescriptor);
 		train_img.setKeyPoints(imgKeyPoints);
@@ -224,7 +225,7 @@ public class ImageDetector {
 		// Sort and select n best key points
 		List<KeyPoint> listOfKeypoints = imgKeyPoints.toList();
 		if(listOfKeypoints.size()<n){
-			Log.i(ERROR, "The requested number of key points is less than that of given key points");
+			Log.i(ERROR, "There are not enough "+n+" key points, only "+listOfKeypoints.size());
 			return imgKeyPoints;
 		}		
 		Collections.sort(listOfKeypoints, new Comparator<KeyPoint>() {
@@ -265,30 +266,35 @@ public class ImageDetector {
     	return goodMatches;
     }
     
+    HashMap<TrainingImage, Integer> CURRENT_MATCH_FREQUENCY;
     // Method that finds the best match from a list of matches
     private TrainingImage findBestMatch(List<DMatch> good_matches)
     {
     	HashMap<TrainingImage,Integer> hm= new HashMap<TrainingImage, Integer>();
     	// count the images matched
     	for(DMatch aMatch: good_matches){    		
-    		TrainingImage trainImg = traing_library.get(aMatch.imgIdx);   
+    		TrainingImage trainImg = training_library.get(aMatch.imgIdx);   
     		if(hm.get(trainImg)==null){
     			hm.put(trainImg,1);
     		}else{
     			hm.put(trainImg, hm.get(trainImg)+1);
     		}
     	}
-    	
+    	CURRENT_MATCH_FREQUENCY = hm;
     	// search for the image that matches the largest number of descriptors.
     	TrainingImage bestMatch= null;
     	Integer greatestCount=0;
+    	Integer secondGreatestCount=0;
 //    	Log.i(TAG, "hashmap of matches size:  "+ hm.size());
     	for(TrainingImage trainImg: hm.keySet()){
 //    		Log.i(TAG, "train img:  "+ trainImg);
     		Integer count=hm.get(trainImg);
     		if(count> greatestCount){
+    			secondGreatestCount = greatestCount;
     			greatestCount= count;
     			bestMatch= trainImg;
+    		}else if(count> secondGreatestCount){
+    			secondGreatestCount = count;
     		}
     	}
     	
@@ -297,7 +303,12 @@ public class ImageDetector {
 //    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
 //    				", numOfMatches: "+hm.get(trainImg));
 //    	}    	
-    	return bestMatch;
+    	if (greatestCount > 1.5*secondGreatestCount){
+    		return bestMatch;
+    	}else{
+    		Log.i(TAG, "Found no best match for the query image!");
+    		return null;
+    	}
     }    
 
     // Method that displays the image and its features 
