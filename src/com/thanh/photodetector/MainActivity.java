@@ -338,8 +338,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    			+" for "+count_training_images+ " training images" + "\n"+ "\n");
 	    	
 	    	//// Detect photos 
-    		long startD = System.currentTimeMillis();
-	    	int count_detected_images = 0;
+    		long startD =0;
+	    	long endD =0;
 	    	int count_visualized_match = 0;
 	    	int count_visualized_mismatch = 0;
 			for (int a = 0; a < number_of_angles ; a++) {
@@ -350,7 +350,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			    		
 				    	String photoName= b+"_"+a+"_"+d+".jpg";
 						String query_path = inputFolder +"/"+"b"+b+"/"+ photoName;
+						
+						startD = System.currentTimeMillis();
 						TrainingImage result = detector.detectPhoto(query_path);
+						endD =System.currentTimeMillis();
 
 						if(result == null){
 							Log.i(TAG, "Can't identify the image!");
@@ -415,7 +418,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 				    			writer_mm_i.flush();
 					    	}
 						}
-				    	count_detected_images++;
 			    	}
 			    	double accuracy = (double)countCorrectMatch*100/number_of_buildings ;
 			    	Log.i(TAG, "a"+a+"_d"+d+", accuracy: "+accuracy+"%");    
@@ -423,9 +425,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			    	writer.flush();
 				}
 			}
-	    	long endD =System.currentTimeMillis();
-	    	Log.i(TAG,"Runtime to detect 1 image: "+(endD-startD)/count_detected_images);
-	    	writer.append("Runtime to detect 1 image: "+(endD-startD)/count_detected_images +"\n");
+	    	Log.i(TAG,"Runtime to detect 1 image: "+(endD-startD));
+	    	writer.append("Runtime to detect 1 image: "+(endD-startD) +"\n");
 			writer.close();
 			writer_m.close();
 			writer_mm.close();
