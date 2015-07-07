@@ -1,10 +1,5 @@
 package com.thanh.photodetector;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -361,76 +356,5 @@ public class ImageDetector {
     	Imgproc.cvtColor(rgba, rgba, Imgproc.COLOR_RGBA2RGB);
     	Features2d.drawKeypoints(rgba,keyPoints,rgba);
     	Imgproc.cvtColor(rgba, rgba, Imgproc.COLOR_RGB2RGBA);
-    }
-    
-    private void alternateFilter()
-    {
-//		// set threshold to 100 (instead of 1) to reduce the number of key points
-//		// not work for new opencv
-//		try {
-//			File outputDir = getCacheDir(); // If in an Activity (otherwise getActivity.getCacheDir();
-//			File outputFile = File.createTempFile("orbDetectorParams", ".YAML", outputDir);
-//			writeToFile(outputFile, "%YAML:1.0\nthreshold: 100 \nnonmaxSupression: true\n");
-//			fDetector.read(outputFile.getPath());
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-    }
-    
-    // (URL Source) http://answers.opencv.org/question/3167/java-how-to-set-parameters-to-orb-featuredetector/?answer=17296#post-id-17296
-    private void writeToFile(File file, String data) {
-        try {
-			FileOutputStream stream = new FileOutputStream(file);
-			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(stream);
-			outputStreamWriter.write(data);
-			outputStreamWriter.close();
-			stream.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    }
-
-    private void ratioTest()
-    {
-
-//    	// match with ratio test
-//    	List<MatOfDMatch> match_list = new ArrayList<MatOfDMatch>();
-//    	dMatcher.knnMatch(query_descriptors, match_list, 2);
-//    	Log.i(TAG, "knnMatch, k=2, match_list size:  "+  match_list.size());
-//    	List<DMatch> tested_dMatch = new ArrayList<DMatch>();
-//    	for(MatOfDMatch mat: match_list)
-//    	{
-//    		List<DMatch> dMatches = mat.toList();
-//    		Log.i(TAG, "dMatches.size:  "+  dMatches.size());
-//    		if(dMatches.size() <2)
-//    		{
-//    			tested_dMatch.add(dMatches.get(0));
-//    		}else{
-//	    		Log.i(TAG, "dMatches get (0):  "+  
-//	    				dMatches.get(0).distance +"  "+
-//	    				dMatches.get(0).imgIdx +"  "+ 
-//	    				dMatches.get(0).queryIdx +"  "+ 
-//	    				dMatches.get(0).trainIdx);
-//	    		Log.i(TAG, "dMatches get (1):  "+  
-//	    				dMatches.get(1).distance +"  "+
-//	    				dMatches.get(1).imgIdx +"  "+ 
-//	    				dMatches.get(1).queryIdx +"  "+ 
-//	    				dMatches.get(1).trainIdx);
-//	    		if(dMatches.get(0).distance < 0.75 * dMatches.get(1).distance)
-//	    		{
-//	    			tested_dMatch.add(dMatches.get(0));
-//	    		}
-//    		}
-//    	}
-//    	// filter good matches
-//    	List<DMatch> total_matches = tested_dMatch;
-//    	List<DMatch> good_matches = tested_dMatch;
-    	
-    }
+    }    
 }
