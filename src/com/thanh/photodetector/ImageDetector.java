@@ -28,7 +28,7 @@ public class ImageDetector {
     private DescriptorExtractor dExtractor;
     private DescriptorMatcher dMatcher;
     
-    private double multiplier;
+    double multiplier;
     private int number_of_key_points;
     
     // tag of messages printed to LogCat
@@ -49,7 +49,7 @@ public class ImageDetector {
 		dMatcher= DescriptorMatcher.create
 				(matcher_type);
 		training_library= new ArrayList<TrainingImage>();
-		multiplier = 0.5;
+		multiplier = 0.05;
 		number_of_key_points = 1000;
     }
     
@@ -192,8 +192,11 @@ public class ImageDetector {
 		fDetector.detect(img, imgKeyPoints);
 
 		// filter the best key points
-		imgKeyPoints= topKeyPoints(imgKeyPoints, number_of_key_points);
+//		imgKeyPoints= topKeyPoints(imgKeyPoints, number_of_key_points);
 
+		Log.i(TAG, "imgKeyPoints size:  "+ imgKeyPoints.size());
+		CURRENT_NUMBER_OF_FEATURES = (int)imgKeyPoints.size().height;
+		
 		// compute the descriptor from those key points
 		dExtractor.compute(img,imgKeyPoints, imgDescriptor);
 		train_img.setKeyPoints(imgKeyPoints);
@@ -210,7 +213,7 @@ public class ImageDetector {
 		// Sort and select n best key points
 		List<KeyPoint> listOfKeypoints = imgKeyPoints.toList();
 		if(listOfKeypoints.size()<n){
-			CURRENT_NUMBER_OF_FEATURES = listOfKeypoints.size();
+//			CURRENT_NUMBER_OF_FEATURES = listOfKeypoints.size();
 			Log.i(ERROR, "There are not enough "+n+" key points, only "+listOfKeypoints.size());
 			return imgKeyPoints;
 		}else{	
@@ -224,7 +227,7 @@ public class ImageDetector {
 	//		Log.i(TAG, "listOfKeypoints size:  "+ listOfKeypoints.size());
 			List<KeyPoint> bestImgKeyPoints = listOfKeypoints.subList(0,n);
 	//		Log.i(TAG, "bestImgKeyPoints size:  "+ bestImgKeyPoints.size());
-			CURRENT_NUMBER_OF_FEATURES = bestImgKeyPoints.size();
+//			CURRENT_NUMBER_OF_FEATURES = bestImgKeyPoints.size();
 			
 			MatOfKeyPoint result = new MatOfKeyPoint();
 			result.fromList(bestImgKeyPoints); 
