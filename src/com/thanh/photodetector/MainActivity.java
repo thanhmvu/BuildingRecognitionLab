@@ -134,13 +134,17 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	Mat rgba= inputFrame.rgba();
     	
     	if(mIsTakingPhoto){
-    		mIsTakingPhoto= false;  	}    	
+    		mIsTakingPhoto= false;
+    		mIsMenuLocked = false; 
+    	}    	
     	if(mIsObjectDetecting){
     		mIsObjectDetecting=false;
     		runExperiment();
+    		mIsMenuLocked = false; 
     	}
     	if(mIsLoadingLib){
-    		mIsLoadingLib=false;    		
+    		mIsLoadingLib=false;
+    		mIsMenuLocked = false; 
     	}
     	return rgba;
     }
@@ -246,7 +250,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public void onCameraViewStopped() {
     }
 
-    @SuppressLint("SimpleDateFormat")
+    @SuppressLint({ "SimpleDateFormat", "UseSparseArrays" })
 	public void runExperiment()
     {
 		DateFormat dF= new SimpleDateFormat("yyyyMMdd_HHmmss");
@@ -267,18 +271,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	
     	HashMap<Integer, String> detector_map = new HashMap<Integer,String>();
     	detector_map.put(FeatureDetector.FAST,"FAST");
-    	detector_map.put(FeatureDetector.DYNAMIC_FAST,"DYNAMIC_FAST");
-    	detector_map.put(FeatureDetector.GRID_FAST,"GRID_FAST");
-    	detector_map.put(FeatureDetector.PYRAMID_FAST,"PYRAMID_FAST");
+//    	detector_map.put(FeatureDetector.ORB,"ORB");
+//    	detector_map.put(FeatureDetector.BRISK,"BRISK");
+    	
+    	for(Integer d_type: detector_map.keySet())
+    	{
     	
     	// (!) WARNING: Changing the parameters of ImageDector may affect methods such as
     	// 				[key point filter], [good match filter], [count best match],
     	// 				which, in turn, affect the outcome.
 		ImageDetector detector = new ImageDetector(	
-				FeatureDetector.FAST,
+				d_type,
 				DescriptorExtractor.ORB,
 				DescriptorMatcher.BRUTEFORCE_HAMMINGLUT);
-		String detector_type = "FAST"; 
+		String detector_type = detector_map.get(d_type); 
 		String extractor_type = "ORB";
 		String matcher_type = "BRUTEFORCE_HAMMINGLUT";
 		
@@ -314,7 +320,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     		writer.append("Additional notes: "+notes+"\n");
     		//	(!) WARNING: 	hard code in ImageDetector class
             //					image_resizing_factor = 0.5
-    		writer.append("Image resizing factor: 0.5"+"\n"); //HARD CODE
+    		writer.append("Image resizing factor: "+detector.multiplier+"\n"); //HARD CODE
     		
     		
 	    	//// Build the library    	
@@ -334,6 +340,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    	
 	    	long done_building_lib= System.currentTimeMillis();
 
+	    	Log.i(TAG,"Number of key points for each image: "
+	    			+detector.CURRENT_NUMBER_OF_FEATURES);
             writer.append("Number of key points for each image: "
 	    			+detector.CURRENT_NUMBER_OF_FEATURES+"\n"+ "\n");
             
@@ -447,6 +455,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         {
              e.printStackTrace();
         }
+    	}
     }
 
     // Method that displays a given photo on the screen,
