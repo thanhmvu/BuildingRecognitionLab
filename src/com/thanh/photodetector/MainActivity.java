@@ -282,6 +282,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		String extractor_type = "ORB";
 		String matcher_type = "BRUTEFORCE_HAMMING";
 		
+		String notes = "no filter";
+		
 		try
         {
             File root = new File(Environment.getExternalStorageDirectory(), folderName);
@@ -315,6 +317,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             writer.append("Number of key points for each image: 1000"+"\n"); //HARD CODE
     		writer.append("Image resizing factor: 0.5"+"\n"+"\n"); //HARD CODE
     		
+    		writer.append("Additional notes: "+notes+"\n"+"\n");
+    		
 	    	//// Build the library    	
 	    	long start= System.currentTimeMillis();
 	    	// load using image paths from device
@@ -345,6 +349,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			for (int a = 0; a < number_of_angles ; a++) {
 				for (int d = 0; d < variation_of_distance ; d++) {
 			    	int countCorrectMatch =0;
+			    	int countUnidentified =0;
 			    	for (int b = 0; b < number_of_buildings ; b++) {
 			    		// load the query image
 			    		
@@ -356,6 +361,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 						endD =System.currentTimeMillis();
 
 						if(result == null){
+							countUnidentified++;
 							Log.i(TAG, "Can't identify the image!");
 						}else{
 							String matchName = result.name();
@@ -419,9 +425,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 					    	}
 						}
 			    	}
-			    	double accuracy = (double)countCorrectMatch*100/number_of_buildings ;
-			    	Log.i(TAG, "a"+a+"_d"+d+", accuracy: "+accuracy+"%");    
-			    	writer.append("==> a"+a+"_d"+d+" "+accuracy+"%"+"\n"+"\n");
+			    	double matching_rate = (double)countCorrectMatch*100/number_of_buildings ;
+			    	double unidentified_rate = (double)countUnidentified*100/number_of_buildings ;
+			    	Log.i(TAG, "a"+a+"_d"+d+", Matched: "+matching_rate+"%, Unidentified: "
+			    			+unidentified_rate+"%; accuracy: "+(matching_rate+unidentified_rate)+"%");    
+			    	writer.append("==> a"+a+"_d"+d+".  matched:  "+matching_rate+"%,  unidentified:  "
+			    			+unidentified_rate+"%;  accuracy:  "+(matching_rate+unidentified_rate)+"%"+"\n"+"\n");
 			    	writer.flush();
 				}
 			}
