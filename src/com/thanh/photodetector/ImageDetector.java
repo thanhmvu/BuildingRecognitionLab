@@ -40,18 +40,6 @@ public class ImageDetector {
     // A list of all training photos
     private List<TrainingImage> training_library;
     
-//    public ImageDetector()
-//    {
-//    	fDetector = FeatureDetector.create
-//				(FeatureDetector.FAST);
-//		dExtractor = DescriptorExtractor.create
-//				(DescriptorExtractor.ORB);
-//		dMatcher= DescriptorMatcher.create
-//				(DescriptorMatcher.BRUTEFORCE_HAMMING);
-//		training_library= new ArrayList<TrainingImage>();
-//		multiplier = 0.5;
-//    }
-    
     public ImageDetector(int detector_type, int extractor_type, int matcher_type)
     {
     	fDetector = FeatureDetector.create
@@ -213,6 +201,8 @@ public class ImageDetector {
 		return imgDescriptor;
     }
     
+    int CURRENT_NUMBER_OF_FEATURES = 0;
+    
     // Method that returns the top 'n' best key points 
     private MatOfKeyPoint topKeyPoints(MatOfKeyPoint imgKeyPoints, int n)
     {
@@ -223,6 +213,8 @@ public class ImageDetector {
 			Log.i(ERROR, "There are not enough "+n+" key points, only "+listOfKeypoints.size());
 			return imgKeyPoints;
 		}		
+		CURRENT_NUMBER_OF_FEATURES = listOfKeypoints.size();
+		
 		Collections.sort(listOfKeypoints, new Comparator<KeyPoint>() {
 		    @Override
 		    public int compare(KeyPoint kp1, KeyPoint kp2) {

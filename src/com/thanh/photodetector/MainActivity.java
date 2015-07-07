@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -264,18 +265,24 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	int number_of_angles =5;
     	int variation_of_distance=4;
     	
+    	HashMap<Integer, String> detector_map = new HashMap<Integer,String>();
+    	detector_map.put(FeatureDetector.FAST,"FAST");
+    	detector_map.put(FeatureDetector.DYNAMIC_FAST,"DYNAMIC_FAST");
+    	detector_map.put(FeatureDetector.GRID_FAST,"GRID_FAST");
+    	detector_map.put(FeatureDetector.PYRAMID_FAST,"PYRAMID_FAST");
+    	
     	// (!) WARNING: Changing the parameters of ImageDector may affect methods such as
     	// 				[key point filter], [good match filter], [count best match],
     	// 				which, in turn, affect the outcome.
 		ImageDetector detector = new ImageDetector(	
-				FeatureDetector.ORB,
+				FeatureDetector.FAST,
 				DescriptorExtractor.ORB,
-				DescriptorMatcher.BRUTEFORCE_HAMMING);
-		String detector_type = "ORB"; 
+				DescriptorMatcher.BRUTEFORCE_HAMMINGLUT);
+		String detector_type = "FAST"; 
 		String extractor_type = "ORB";
-		String matcher_type = "BRUTEFORCE_HAMMING";
+		String matcher_type = "BRUTEFORCE_HAMMINGLUT";
 		
-		String notes = "no filter";
+		String notes = "no filter. BRUTEFORCE_HAMMINGLUT, expected faster operations.";
 		
 		try
         {
@@ -302,15 +309,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             
             writer.append("Detector type: " + detector_type + "\n");
             writer.append("Extractor type: " + extractor_type + "\n");
-            writer.append("Matcher type: " + matcher_type + "\n" + "\n");            
+            writer.append("Matcher type: " + matcher_type + "\n" + "\n");   
 
+    		writer.append("Additional notes: "+notes+"\n");
     		//	(!) WARNING: 	hard code in ImageDetector class
-            //					number_of_keypoint = 1000
             //					image_resizing_factor = 0.5
-            writer.append("Number of key points for each image: 1000"+"\n"); //HARD CODE
-    		writer.append("Image resizing factor: 0.5"+"\n"+"\n"); //HARD CODE
+    		writer.append("Image resizing factor: 0.5"+"\n"); //HARD CODE
     		
-    		writer.append("Additional notes: "+notes+"\n"+"\n");
     		
 	    	//// Build the library    	
 	    	long start= System.currentTimeMillis();
@@ -328,7 +333,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    	}
 	    	
 	    	long done_building_lib= System.currentTimeMillis();
-	    	
+
+            writer.append("Number of key points for each image: "
+	    			+detector.CURRENT_NUMBER_OF_FEATURES+"\n"+ "\n");
+            
 	    	Log.i(TAG, "Runtime to build library: "+ (done_building_lib - start)
 	    			+" for "+count_training_images+ " training images" ); 
 	    	writer.append("Runtime to build library: "+ (done_building_lib - start)
