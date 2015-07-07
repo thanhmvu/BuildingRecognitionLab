@@ -139,7 +139,7 @@ public class ImageDetector {
 //    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
 
     	// find the image that matches the most
-    	TrainingImage bestMatch = findBestMatch(good_matches); 
+    	TrainingImage bestMatch = findBestMatch_noFilter(good_matches); 
 //    	Log.i(TAG, "bestMatch image:  "+ bestMatch.pathID());   
 
     	// update variables for drawCurrentMatches method
@@ -267,6 +267,42 @@ public class ImageDetector {
     }
     
     HashMap<TrainingImage, Integer> CURRENT_MATCH_FREQUENCY;
+    
+    private TrainingImage findBestMatch_noFilter(List<DMatch> good_matches)
+    {
+    	HashMap<TrainingImage,Integer> hm= new HashMap<TrainingImage, Integer>();
+    	// count the images matched
+    	for(DMatch aMatch: good_matches){    		
+    		TrainingImage trainImg = training_library.get(aMatch.imgIdx);   
+    		if(hm.get(trainImg)==null){
+    			hm.put(trainImg,1);
+    		}else{
+    			hm.put(trainImg, hm.get(trainImg)+1);
+    		}
+    	}
+    	CURRENT_MATCH_FREQUENCY = hm;
+    	// search for the image that matches the largest number of descriptors.
+    	TrainingImage bestMatch= null;
+    	Integer greatestCount=0;
+//    	Log.i(TAG, "hashmap of matches size:  "+ hm.size());
+    	for(TrainingImage trainImg: hm.keySet()){
+//    		Log.i(TAG, "train img:  "+ trainImg);
+    		Integer count=hm.get(trainImg);
+    		if(count> greatestCount){
+    			greatestCount= count;
+    			bestMatch= trainImg;
+    		}
+    	}
+    	
+    	// print result
+//    	for(TrainingImage trainImg: hm.keySet()){
+//    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
+//    				", numOfMatches: "+hm.get(trainImg));
+//    	}    
+    	
+    	return bestMatch;    	
+    }    
+    
     // Method that finds the best match from a list of matches
     private TrainingImage findBestMatch(List<DMatch> good_matches)
     {
