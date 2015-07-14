@@ -28,7 +28,7 @@ public class ImageDetector {
     private DescriptorExtractor dExtractor;
     private DescriptorMatcher dMatcher;
     
-    double multiplier;
+    int max_side;
     double filter_ratio;
     private int number_of_key_points;
     
@@ -50,7 +50,7 @@ public class ImageDetector {
 		dMatcher= DescriptorMatcher.create
 				(matcher_type);
 		training_library= new ArrayList<TrainingImage>();
-		multiplier = 0.07;
+		max_side = 300;
 		number_of_key_points = 1000;
 		filter_ratio = 1.25;
     }
@@ -85,8 +85,11 @@ public class ImageDetector {
 
     public Mat resize(Mat src_img)
     {
-		// scale down images
-		Size size= new Size(src_img.size().width*multiplier, src_img.size().height*multiplier);
+    	// scale down images
+		double h = src_img.size().height;
+		double w = src_img.size().width;
+		double multiplier = max_side/Math.max(h,w);
+		Size size= new Size(w*multiplier, h*multiplier);
 		Imgproc.resize(src_img, src_img, size);
 		return src_img;
     }
