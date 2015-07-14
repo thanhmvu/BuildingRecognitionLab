@@ -29,6 +29,7 @@ public class ImageDetector {
     private DescriptorMatcher dMatcher;
     
     double multiplier;
+    double filter_ratio;
     private int number_of_key_points;
     
     // tag of messages printed to LogCat
@@ -49,8 +50,9 @@ public class ImageDetector {
 		dMatcher= DescriptorMatcher.create
 				(matcher_type);
 		training_library= new ArrayList<TrainingImage>();
-		multiplier = 0.05;
+		multiplier = 0.07;
 		number_of_key_points = 1000;
+		filter_ratio = 1.25;
     }
     
     public void addToLibrary(String image_path, long tour_item_id)
@@ -269,6 +271,14 @@ public class ImageDetector {
     		}else{
     			hm.put(trainImg, hm.get(trainImg)+1);
     		}
+    		
+    		if(CURRENT_MATCH_DISTANCES.get(trainImg)==null){
+    			CURRENT_MATCH_DISTANCES.put(trainImg,aMatch.distance+" ");
+    		}else{
+    			String updated_distances = 
+    					CURRENT_MATCH_DISTANCES.get(trainImg)+aMatch.distance+" ";
+    			CURRENT_MATCH_DISTANCES.put(trainImg, updated_distances);
+    		} 
     	}
     	CURRENT_MATCH_FREQUENCY = hm;
     	// search for the image that matches the largest number of descriptors.
@@ -292,6 +302,9 @@ public class ImageDetector {
     	
     	return bestMatch;    	
     }    
+    
+    HashMap<TrainingImage, String> CURRENT_MATCH_DISTANCES 
+    	= new HashMap<TrainingImage, String>();
     
     // Method that finds the best match from a list of matches
     private TrainingImage findBestMatch(List<DMatch> good_matches)
@@ -329,7 +342,7 @@ public class ImageDetector {
 //    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
 //    				", numOfMatches: "+hm.get(trainImg));
 //    	}    	
-    	if (greatestCount > 1.5*secondGreatestCount){
+    	if (greatestCount > filter_ratio*secondGreatestCount){
     		return bestMatch;
     	}else{
     		Log.i(TAG, "Found no best match for the query image!");
