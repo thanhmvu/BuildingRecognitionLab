@@ -20,6 +20,7 @@ import org.opencv.features2d.Features2d;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import android.location.Location;
 import android.util.Log;
 
 public class ImageDetector {
@@ -126,7 +127,7 @@ public class ImageDetector {
 //    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
 
     	// find the image that matches the most
-    	TrainingImage bestMatch = findBestMatch_noFilter(good_matches); 
+    	TrainingImage bestMatch = findBestMatch_noFilter(good_matches, query_image.location()); 
 //    	Log.i(TAG, "bestMatch image:  "+ bestMatch.pathID());   
 
     	// update variables for drawCurrentMatches method
@@ -263,7 +264,7 @@ public class ImageDetector {
     
     HashMap<TrainingImage, Integer> CURRENT_MATCH_FREQUENCY;
     
-    private TrainingImage findBestMatch_noFilter(List<DMatch> good_matches)
+    private TrainingImage findBestMatch_noFilter(List<DMatch> good_matches, Location query_location)
     {
     	HashMap<TrainingImage,Integer> hm= new HashMap<TrainingImage, Integer>();
     	// count the images matched
@@ -283,6 +284,11 @@ public class ImageDetector {
     			CURRENT_MATCH_DISTANCES.put(trainImg, updated_distances);
     		} 
     	}
+    	
+    	// location filter
+    	HashMap<TrainingImage,Integer> filtered_hm = locationFilter(hm,query_location);
+    	hm = filtered_hm;
+    	
     	CURRENT_MATCH_FREQUENCY = hm;
     	// search for the image that matches the largest number of descriptors.
     	TrainingImage bestMatch= null;
@@ -310,18 +316,29 @@ public class ImageDetector {
     	= new HashMap<TrainingImage, String>();
     
     // Method that finds the best match from a list of matches
-    private TrainingImage findBestMatch(List<DMatch> good_matches)
+    private TrainingImage findBestMatch(List<DMatch> good_matches, Location query_location)
     {
     	HashMap<TrainingImage,Integer> hm= new HashMap<TrainingImage, Integer>();
     	// count the images matched
     	for(DMatch aMatch: good_matches){    		
-    		TrainingImage trainImg = training_library.get(aMatch.imgIdx);   
+    		TrainingImage trainImg = training_library.get(aMatch.imgIdx);
+    		
     		if(hm.get(trainImg)==null){
     			hm.put(trainImg,1);
     		}else{
     			hm.put(trainImg, hm.get(trainImg)+1);
     		}
     	}
+    	
+    	// location filter
+    	for(TrainingImage trainImg: hm.keySet()){
+    		double distance = query_location.distanceTo(trainImg.location());
+//    		Log.i(TAG, "distance:  "+ distance); 
+    		if(distance > 100){
+    			hm.remove(trainImg);
+    		}
+    	}
+    	
     	CURRENT_MATCH_FREQUENCY = hm;
     	// search for the image that matches the largest number of descriptors.
     	TrainingImage bestMatch= null;
@@ -353,6 +370,19 @@ public class ImageDetector {
     	}
     }    
 
+    public HashMap<TrainingImage,Integer> locationFilter(HashMap<TrainingImage,Integer> hm, Location query_location)
+    {
+    	HashMap<TrainingImage,Integer> new_hm = new HashMap<TrainingImage,Integer>();
+    	for(TrainingImage trainImg: hm.keySet()){
+    		double distance = query_location.distanceTo(trainImg.location());
+    		if(distance < 100){
+    			int count = hm.get(trainImg);
+    			new_hm.put(trainImg,count);
+    		}
+    	}
+    	return new_hm;
+    }
+    
     // Method that displays the image and its features 
     // on the device's screen
     public void drawFeatures(Mat rgba){
