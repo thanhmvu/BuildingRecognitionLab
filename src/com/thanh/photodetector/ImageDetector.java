@@ -276,13 +276,13 @@ public class ImageDetector {
     			hm.put(trainImg, hm.get(trainImg)+1);
     		}
     		
-    		if(CURRENT_MATCH_DISTANCES.get(trainImg)==null){
-    			CURRENT_MATCH_DISTANCES.put(trainImg,aMatch.distance+" ");
-    		}else{
-    			String updated_distances = 
-    					CURRENT_MATCH_DISTANCES.get(trainImg)+aMatch.distance+" ";
-    			CURRENT_MATCH_DISTANCES.put(trainImg, updated_distances);
-    		} 
+//    		if(CURRENT_MATCH_DISTANCES.get(trainImg)==null){
+//    			CURRENT_MATCH_DISTANCES.put(trainImg,aMatch.distance+" ");
+//    		}else{
+//    			String updated_distances = 
+//    					CURRENT_MATCH_DISTANCES.get(trainImg)+aMatch.distance+" ";
+//    			CURRENT_MATCH_DISTANCES.put(trainImg, updated_distances);
+//    		} 
     	}
     	
     	// location filter
@@ -312,8 +312,8 @@ public class ImageDetector {
     	return bestMatch;    	
     }    
     
-    HashMap<TrainingImage, String> CURRENT_MATCH_DISTANCES 
-    	= new HashMap<TrainingImage, String>();
+//    HashMap<TrainingImage, String> CURRENT_MATCH_DISTANCES 
+//    	= new HashMap<TrainingImage, String>();
     
     // Method that finds the best match from a list of matches
     private TrainingImage findBestMatch(List<DMatch> good_matches, Location query_location)
