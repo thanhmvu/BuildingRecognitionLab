@@ -53,7 +53,7 @@ public class ImageDetector {
 		training_library= new ArrayList<TrainingImage>();
 		max_side = 300;
 		number_of_key_points = 1000;
-		filter_ratio = 1.25;
+		filter_ratio = 1.15;
     }
     
     public void addToLibrary(String image_path, long tour_item_id)
@@ -127,7 +127,7 @@ public class ImageDetector {
 //    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
 
     	// find the image that matches the most
-    	TrainingImage bestMatch = findBestMatch_noFilter(good_matches, query_image.location()); 
+    	TrainingImage bestMatch = findBestMatch(good_matches, query_image.location()); 
 //    	Log.i(TAG, "bestMatch image:  "+ bestMatch.pathID());   
 
     	// update variables for drawCurrentMatches method
@@ -331,13 +331,8 @@ public class ImageDetector {
     	}
     	
     	// location filter
-    	for(TrainingImage trainImg: hm.keySet()){
-    		double distance = query_location.distanceTo(trainImg.location());
-//    		Log.i(TAG, "distance:  "+ distance); 
-    		if(distance > 100){
-    			hm.remove(trainImg);
-    		}
-    	}
+    	HashMap<TrainingImage,Integer> filtered_hm = locationFilter(hm,query_location);
+    	hm = filtered_hm;
     	
     	CURRENT_MATCH_FREQUENCY = hm;
     	// search for the image that matches the largest number of descriptors.
