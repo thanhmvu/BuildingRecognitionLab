@@ -260,9 +260,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	String testName_m = "testData_m.csv";
     	String testName_mm = "testData_mm.csv";
     	String testName_mm_i = "testData_mm_i.csv";
+    	String testName_m_d = "testData_m_d.csv";
+    	String testName_mm_d = "testData_mm_d.csv";
     	
     	String folderName = "Research/output"+time;
     	String inputFolder = Environment.getExternalStoragePublicDirectory
+    			(Environment.DIRECTORY_PICTURES)+ "/Research/database";
+    	String inputFolder_query = Environment.getExternalStoragePublicDirectory
     			(Environment.DIRECTORY_PICTURES)+ "/Research/database";
     	
     	int number_of_buildings =10;
@@ -288,7 +292,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		String extractor_type = "ORB";
 		String matcher_type = "BRUTEFORCE_HAMMINGLUT";
 		
-		String notes = "no filter. BRUTEFORCE_HAMMINGLUT, expected faster operations.";
+		// Additional notes
+		String notes = "test location filter only";
 		
 		try
         {
@@ -301,12 +306,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             
             File gpxfile_m = new File(root, testName_m);
             FileWriter writer_m = new FileWriter(gpxfile_m);
+            writer_m.append("\n");
             
             File gpxfile_mm = new File(root, testName_mm);
             FileWriter writer_mm = new FileWriter(gpxfile_mm);
+            writer_mm.append("\n");
             
-            File gpxfile_mm_i = new File(root, testName_mm_i);
-            FileWriter writer_mm_i = new FileWriter(gpxfile_mm_i);
+//            File gpxfile_mm_i = new File(root, testName_mm_i);
+//            FileWriter writer_mm_i = new FileWriter(gpxfile_mm_i);
+//            
+//            File gpxfile_m_d = new File(root, testName_m_d);
+//            FileWriter writer_m_d = new FileWriter(gpxfile_m_d);
+//            
+//            File gpxfile_mm_d = new File(root, testName_mm_d);
+//            FileWriter writer_mm_d = new FileWriter(gpxfile_mm_d);
             
             writer.append("[Experiment setup and results]" + "\n");
             writer.append("Number of buildings: " + number_of_buildings + "\n");
@@ -319,8 +332,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     		writer.append("Additional notes: "+notes+"\n");
     		//	(!) WARNING: 	hard code in ImageDetector class
-            //					image_resizing_factor = 0.5
-    		writer.append("Image resizing factor: "+detector.multiplier+"\n"); //HARD CODE
+    		writer.append("Image scaled down to at most: "+detector.max_side+"x"+detector.max_side+"\n"); //HARD CODE
     		
     		
 	    	//// Build the library    	
@@ -353,8 +365,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    	//// Detect photos 
     		long startD =0;
 	    	long endD =0;
+	    	long time_to_detect=0;
 	    	int count_visualized_match = 0;
 	    	int count_visualized_mismatch = 0;
+	    	int count_detected_images = 0;
 			for (int a = 0; a < number_of_angles ; a++) {
 				for (int d = 0; d < variation_of_distance ; d++) {
 			    	int countCorrectMatch =0;
@@ -363,12 +377,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			    		// load the query image
 			    		
 				    	String photoName= b+"_"+a+"_"+d+".jpg";
-						String query_path = inputFolder +"/"+"b"+b+"/"+ photoName;
+						String query_path = inputFolder_query +"/"+"b"+b+"/"+ photoName;	
 						
-						startD = System.currentTimeMillis();
+						startD = System.currentTimeMillis();					
 						TrainingImage result = detector.detectPhoto(query_path);
 						endD =System.currentTimeMillis();
-
+						time_to_detect += (endD-startD);
+						
 						if(result == null){
 							countUnidentified++;
 							Log.i(TAG, "Can't identify the image!");
@@ -390,17 +405,22 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 						    				Environment.getExternalStorageDirectory().toString()+
 						    				"/" + folderName + "/matches");
 					    			}
-						    		
-						    		// print frequency
-						    		String frequency = "Matches, ";
-						    		for(TrainingImage trainImg: detector.CURRENT_MATCH_FREQUENCY.keySet()){
-						        		Integer i=detector.CURRENT_MATCH_FREQUENCY.get(trainImg);
-						        		frequency += i +", ";
-						        	}
-					        		Log.i(TAG, frequency);
-					    			writer_m.append(count_visualized_match+", "+frequency+"\n");
-					    			writer_m.flush();
 					    		}
+					    		
+					    		// print frequency
+					    		String frequency = "Matches, ";
+					    		String match_distances ="Match distances, ";
+					    		for(TrainingImage trainImg: detector.CURRENT_MATCH_FREQUENCY.keySet()){
+					        		Integer i=detector.CURRENT_MATCH_FREQUENCY.get(trainImg);
+					        		frequency += i +", ";
+//					        		match_distances += 
+//					        				detector.CURRENT_MATCH_DISTANCES.get(trainImg)+", ";
+					        	}
+				        		Log.i(TAG, frequency);
+				    			writer_m.append(count_visualized_match+", "+frequency+"\n");
+				    			writer_m.flush();
+//					    		writer_m_d.append(count_visualized_match+", "+match_distances+"\n");
+//				    			writer_m_d.flush();
 					    	}else{
 					    		Log.i(TAG, "Mismatched: "+ photoName+" with "+matchName);
 					    		writer.append( "Mismatched: "+photoName+" with "+matchName +"\n");
@@ -421,18 +441,25 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 					    		// print frequency
 					    		String frequency = "Mismatches, ";
 					    		String mismatch_images =photoName+ "_Mismatch images, ";
+					    		String mismatch_distances ="Mismatch distances, ";
 					    		for(TrainingImage trainImg: detector.CURRENT_MATCH_FREQUENCY.keySet()){
 					        		Integer i=detector.CURRENT_MATCH_FREQUENCY.get(trainImg);
 					        		frequency += i +", ";
 					        		mismatch_images += trainImg.name()+", ";
-					        	}
+//					        		mismatch_distances += 
+//					        				detector.CURRENT_MATCH_DISTANCES.get(trainImg)+", ";
+					    		}
 				        		Log.i(TAG, frequency);
 				    			writer_mm.append(count_visualized_mismatch+", "+frequency+"\n");
 				    			writer_mm.flush();
-				    			writer_mm_i.append(count_visualized_mismatch+", "+mismatch_images+"\n");
-				    			writer_mm_i.flush();
+//				    			writer_mm_i.append(count_visualized_mismatch+", "+mismatch_images+"\n");
+//				    			writer_mm_i.flush();
+//				    			writer_mm_d.append(count_visualized_mismatch+", "+mismatch_distances+"\n");
+//				    			writer_mm_d.flush();
 					    	}
 						}
+
+						count_detected_images++;
 			    	}
 			    	double matching_rate = (double)countCorrectMatch*100/number_of_buildings ;
 			    	double unidentified_rate = (double)countUnidentified*100/number_of_buildings ;
@@ -445,10 +472,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			}
 	    	Log.i(TAG,"Runtime to detect 1 image: "+(endD-startD));
 	    	writer.append("Runtime to detect 1 image: "+(endD-startD) +"\n");
-			writer.close();
+	    	writer.close();
 			writer_m.close();
 			writer_mm.close();
-			writer_mm_i.close();
+//			writer_mm_i.close();
+//			writer_m_d.close();
+//			writer_mm_d.close();
 //          Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();	        
         }
         catch(IOException e)
