@@ -53,7 +53,7 @@ public class ImageDetector {
 		training_library= new ArrayList<TrainingImage>();
 		max_side = 300;
 		number_of_key_points = 1000;
-		filter_ratio = 1.15;
+		filter_ratio = 5;
     }
     
     public void addToLibrary(String image_path, long tour_item_id)
@@ -357,7 +357,8 @@ public class ImageDetector {
 //    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
 //    				", numOfMatches: "+hm.get(trainImg));
 //    	}    	
-    	if (greatestCount > filter_ratio*secondGreatestCount){
+    	int diff = greatestCount-secondGreatestCount ;
+    	if ( diff * diff > filter_ratio * greatestCount){
     		return bestMatch;
     	}else{
     		Log.i(TAG, "Found no best match for the query image!");
