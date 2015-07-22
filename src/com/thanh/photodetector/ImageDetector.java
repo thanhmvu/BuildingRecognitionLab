@@ -368,19 +368,20 @@ public class ImageDetector {
 
     public HashMap<TrainingImage,Integer> locationFilter(HashMap<TrainingImage,Integer> hm, Location query_location)
     {
-    	HashMap<TrainingImage,Integer> new_hm = new HashMap<TrainingImage,Integer>();
     	if(query_location == null){
     		Log.i(TAG, "Image's location is not available");
+    		return hm;
     	}else{
+        	HashMap<TrainingImage,Integer> new_hm = new HashMap<TrainingImage,Integer>();
 	    	for(TrainingImage trainImg: hm.keySet()){
 	    		double distance = query_location.distanceTo(trainImg.location());
-	    		if(distance < 100){
+	    		if(distance < 50){
 	    			int count = hm.get(trainImg);
 	    			new_hm.put(trainImg,count);
 	    		}
 	    	}
+	    	return new_hm;
     	}
-    	return new_hm;
     }
     
     // Method that displays the image and its features 
