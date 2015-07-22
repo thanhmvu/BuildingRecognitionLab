@@ -260,6 +260,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	String testName_m = "testData_m.csv";
     	String testName_mm = "testData_mm.csv";
     	String testName_mm_i = "testData_mm_i.csv";
+    	String testName_m_i = "testData_m_i.csv";
 //    	string testName_mm_d = "testData_mm_d.csv";
     	
     	String folderName = "Research/output"+time;
@@ -313,7 +314,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             
             File gpxfile_mm_i = new File(root, testName_mm_i);
             FileWriter writer_mm_i = new FileWriter(gpxfile_mm_i);
-//            
+            
+            File gpxfile_m_i = new File(root, testName_m_i);
+            FileWriter writer_m_i = new FileWriter(gpxfile_m_i);
+            
 //            File gpxfile_m_d = new File(root, testName_m_d);
 //            FileWriter writer_m_d = new FileWriter(gpxfile_m_d);
 //            
@@ -408,16 +412,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 					    		
 					    		// print frequency
 					    		String frequency = "Matches, ";
+					    		String match_images =photoName+"_"+detector.CURRENT_QUERY_IMAGE.descriptors().size().height+"_Match images, ";
 //					    		String match_distances ="Match distances, ";
 					    		for(TrainingImage trainImg: detector.CURRENT_MATCH_FREQUENCY.keySet()){
 					        		Integer i=detector.CURRENT_MATCH_FREQUENCY.get(trainImg);
 					        		frequency += i +", ";
+					        		match_images += trainImg.name()+"_"+trainImg.descriptors().size().height+", ";
 //					        		match_distances += 
 //					        				detector.CURRENT_MATCH_DISTANCES.get(trainImg)+", ";
 					        	}
 				        		Log.i(TAG, frequency);
 				    			writer_m.append(count_visualized_match+", "+frequency+"\n");
 				    			writer_m.flush();
+				    			writer_m_i.append(count_visualized_match+", "+match_images+"\n");
+				    			writer_m_i.flush();
 //					    		writer_m_d.append(count_visualized_match+", "+match_distances+"\n");
 //				    			writer_m_d.flush();
 					    	}else{
@@ -439,12 +447,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	
 					    		// print frequency
 					    		String frequency = "Mismatches, ";
-					    		String mismatch_images =photoName+ "_Mismatch images, ";
+					    		String mismatch_images =photoName+"_"+detector.CURRENT_QUERY_IMAGE.descriptors().size().height+"_Mismatch images, ";
 //					    		String mismatch_distances ="Mismatch distances, ";
 					    		for(TrainingImage trainImg: detector.CURRENT_MATCH_FREQUENCY.keySet()){
 					        		Integer i=detector.CURRENT_MATCH_FREQUENCY.get(trainImg);
 					        		frequency += i +", ";
-					        		mismatch_images += trainImg.name()+", ";
+					        		mismatch_images += trainImg.name()+"_"+trainImg.descriptors().size().height+", ";
 //					        		mismatch_distances += 
 //					        				detector.CURRENT_MATCH_DISTANCES.get(trainImg)+", ";
 					    		}
@@ -475,6 +483,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			writer_m.close();
 			writer_mm.close();
 			writer_mm_i.close();
+			writer_m_i.close();
 //			writer_m_d.close();
 //			writer_mm_d.close();
 //          Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();	        
