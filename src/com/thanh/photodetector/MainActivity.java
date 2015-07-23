@@ -265,13 +265,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	
     	String folderName = "Research/output"+time;
     	String inputFolder = Environment.getExternalStoragePublicDirectory
-    			(Environment.DIRECTORY_PICTURES)+ "/Research/caltech_buildings";
+    			(Environment.DIRECTORY_PICTURES)+ "/Research/database";
     	String inputFolder_query = Environment.getExternalStoragePublicDirectory
-    			(Environment.DIRECTORY_PICTURES)+ "/Research/caltech_buildings";
+    			(Environment.DIRECTORY_PICTURES)+ "/Research/database";
     	
-    	int number_of_buildings =50;
-    	int number_of_angles =4;
-    	int variation_of_distance=1;
+    	int number_of_buildings =10;
+    	int number_of_angles =5;
+    	int variation_of_distance=4;
     	
     	HashMap<Integer, String> detector_map = new HashMap<Integer,String>();
     	detector_map.put(FeatureDetector.FAST,"FAST");
@@ -293,7 +293,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		String matcher_type = "BRUTEFORCE_HAMMINGLUT";
 		
 		// Additional notes
-		String notes = "caltech_buildings.location filter and new 2ndBest filter-RD-5";
+		String notes = "none";
 		
 		try
         {
@@ -343,9 +343,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    	// load using image paths from device
 	    	int count_training_images = 0;
 	    	for (int a = 0; a < 1 ; a++) {
-		    	for (int b = 0; b < 50 ; b++) {
-		    		int d=0;
-					String photoName= b+"_train.JPG";
+		    	for (int b = 0; b < 10 ; b++) {
+		    		int d=1;
+					String photoName= b+"_"+a+"_"+d+".jpg";
 					String photoPath = inputFolder +"/"+ photoName;
 					detector.addToLibrary(photoPath, b);
 					Log.i(TAG, "Added 1 new image to the library");
@@ -372,14 +372,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	    	int count_visualized_match = 0;
 	    	int count_visualized_mismatch = 0;
 	    	int count_detected_images = 0;
-	    	int countCorrectMatch =0;
-	    	int countUnidentified =0;
 			for (int a = 0; a < number_of_angles ; a++) {
 				for (int d = 0; d < variation_of_distance ; d++) {
+			    	int countCorrectMatch =0;
+			    	int countUnidentified =0;
 			    	for (int b = 0; b < number_of_buildings ; b++) {
 			    		// load the query image
 			    		
-				    	String photoName= b+"_"+a+"_"+d+".JPG";
+				    	String photoName= b+"_"+a+"_"+d+".jpg";
 						String query_path = inputFolder_query +"/"+ photoName;	
 						
 						startD = System.currentTimeMillis();					
@@ -468,15 +468,15 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 						count_detected_images++;
 			    	}
+			    	double matching_rate = (double)countCorrectMatch*100/number_of_buildings ;
+			    	double unidentified_rate = (double)countUnidentified*100/number_of_buildings ;
+			    	Log.i(TAG, "a"+a+"_d"+d+", Matched: "+matching_rate+"%, Unidentified: "
+			    			+unidentified_rate+"%; accuracy: "+(matching_rate+unidentified_rate)+"%");    
+			    	writer.append("==> a"+a+"_d"+d+".  matched:  "+matching_rate+"%,  unidentified:  "
+			    			+unidentified_rate+"%;  accuracy:  "+(matching_rate+unidentified_rate)+"%"+"\n"+"\n");
+			    	writer.flush();
 				}
 			}
-	    	double matching_rate = (double)countCorrectMatch*100/count_detected_images ;
-	    	double unidentified_rate = (double)countUnidentified*100/count_detected_images ;
-	    	Log.i(TAG, ", Matched: "+matching_rate+"%, Unidentified: "
-	    			+unidentified_rate+"%; accuracy: "+(matching_rate+unidentified_rate)+"%");    
-	    	writer.append("==> matched:  "+matching_rate+"%,  unidentified:  "
-	    			+unidentified_rate+"%;  accuracy:  "+(matching_rate+unidentified_rate)+"%"+"\n"+"\n");
-	    	writer.flush();
 	    	Log.i(TAG,"Runtime to detect 1 image: "+time_to_detect/count_detected_images);
 	    	writer.append("Runtime to detect 1 image: "+time_to_detect/count_detected_images +"\n");
 	    	writer.close();
