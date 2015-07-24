@@ -12,6 +12,7 @@ import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
@@ -127,7 +128,7 @@ public class ImageDetector {
 //    	Log.i(TAG, "list of good matches size:  "+ good_matches.size());
 
     	// find the image that matches the most
-    	TrainingImage bestMatch = findBestMatch(good_matches, query_image.location()); 
+    	TrainingImage bestMatch = findBestMatch(good_matches, query_image); 
 //    	Log.i(TAG, "bestMatch image:  "+ bestMatch.pathID());   
 
     	// update variables for drawCurrentMatches method
@@ -316,7 +317,7 @@ public class ImageDetector {
 //    	= new HashMap<TrainingImage, String>();
     
     // Method that finds the best match from a list of matches
-    private TrainingImage findBestMatch(List<DMatch> good_matches, Location query_location)
+    private TrainingImage findBestMatch(List<DMatch> good_matches, TrainingImage query_image)
     {
     	HashMap<TrainingImage,Integer> hm= new HashMap<TrainingImage, Integer>();
     	// count the images matched
@@ -331,12 +332,13 @@ public class ImageDetector {
     	}
     	
     	// location filter
-    	HashMap<TrainingImage,Integer> filtered_hm = locationFilter(hm,query_location);
+    	HashMap<TrainingImage,Integer> filtered_hm = locationFilter(hm,query_image.location());
     	hm = filtered_hm;
     	
     	CURRENT_MATCH_FREQUENCY = hm;
     	// search for the image that matches the largest number of descriptors.
     	TrainingImage bestMatch= null;
+    	TrainingImage secondBestMatch= null;
     	Integer greatestCount=0;
     	Integer secondGreatestCount=0;
 //    	Log.i(TAG, "hashmap of matches size:  "+ hm.size());
@@ -345,10 +347,12 @@ public class ImageDetector {
     		Integer count=hm.get(trainImg);
     		if(count> greatestCount){
     			secondGreatestCount = greatestCount;
+    			secondBestMatch = bestMatch;
     			greatestCount= count;
     			bestMatch= trainImg;
     		}else if(count> secondGreatestCount){
     			secondGreatestCount = count;
+    			secondBestMatch = trainImg;
     		}
     	}
     	
@@ -356,7 +360,7 @@ public class ImageDetector {
 //    	for(TrainingImage trainImg: hm.keySet()){
 //    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
 //    				", numOfMatches: "+hm.get(trainImg));
-//    	}    	
+//    	}
     	int diff = greatestCount-secondGreatestCount ;
     	if ( diff * diff > filter_ratio * greatestCount){
     		return bestMatch;
