@@ -399,37 +399,48 @@ public class ImageDetector {
     	CURRENT_MATCH_FREQUENCY = hm;
     	// search for the image that matches the largest number of descriptors.
     	TrainingImage bestMatch= null;
-    	TrainingImage secondBestMatch= null;
-    	Integer greatestCount=0;
-    	Integer secondGreatestCount=0;
+		TrainingImage secondBestMatch= null;
 //    	Log.i(TAG, "hashmap of matches size:  "+ hm.size());
-    	for(TrainingImage trainImg: hm.keySet()){
-//    		Log.i(TAG, "train img:  "+ trainImg);
-    		Integer count=hm.get(trainImg);
-    		if(count> greatestCount){
-    			secondGreatestCount = greatestCount;
-    			secondBestMatch = bestMatch;
-    			greatestCount= count;
-    			bestMatch= trainImg;
-    		}else if(count> secondGreatestCount){
-    			secondGreatestCount = count;
-    			secondBestMatch = trainImg;
-    		}
-    	}
-    	
+				for(TrainingImage trainImg: hm.keySet()){
+					if(bestMatch == null){
+						bestMatch= trainImg;				
+					}else{
+						if(hm.get(trainImg)> hm.get(bestMatch)){
+							secondBestMatch = bestMatch;
+							bestMatch= trainImg;
+						}else{
+							if (secondBestMatch == null){
+								secondBestMatch = trainImg;
+							}else{
+								if(trainImg.tourID() != bestMatch.tourID() 
+										&& hm.get(trainImg)> hm.get(secondBestMatch)){
+									secondBestMatch = trainImg;
+								}
+							}
+						}
+					}
+				}
+
     	// print result
 //    	for(TrainingImage trainImg: hm.keySet()){
 //    		Log.i(TAG, "Matched img result:  "+ trainImg.pathID() +
 //    				", numOfMatches: "+hm.get(trainImg));
 //    	}
-    	int diff = greatestCount-secondGreatestCount ;
-    	if ( diff * diff > filter_ratio * greatestCount){
-    		return bestMatch;
-    	}else{
-    		Log.i(TAG, "Found no best match for the query image!");
-    		return null;
-    	}
-    }    
+
+		if (secondBestMatch == null){
+			return bestMatch;
+		}
+		else{ 
+			int diff = hm.get(bestMatch)-hm.get(secondBestMatch) ;
+			if ( diff * diff > filter_ratio * hm.get(bestMatch)){
+				return bestMatch;
+			}
+			else{
+				Log.i(TAG, "Found no best match for the query image!");
+				return null;
+			}
+		}
+	}
 
     public HashMap<TrainingImage,Integer> locationFilter(HashMap<TrainingImage,Integer> hm, Location query_location)
     {
