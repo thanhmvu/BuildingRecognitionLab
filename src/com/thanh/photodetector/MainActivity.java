@@ -269,9 +269,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     	String inputFolder_query = Environment.getExternalStoragePublicDirectory
     			(Environment.DIRECTORY_PICTURES)+ "/Research/database";
     	
-    	int number_of_buildings =1;
-    	int number_of_angles =1;
-    	int variation_of_distance=1;
+    	int number_of_buildings =10;
+    	int number_of_angles =5;
+    	int variation_of_distance=4;
     	
     	HashMap<Integer, String> detector_map = new HashMap<Integer,String>();
     	detector_map.put(FeatureDetector.FAST,"FAST");
